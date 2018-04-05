@@ -19,7 +19,7 @@ durationSeconds db 0       ;
 stopHour        db 0       ;
 stopMinutes     db 0       ; Время в прекращения вывода сигнала
 stopSeconds     db 0       ;
-
+                           
 badCMDArgsMessage db "Bad command-line arguments. I want only 6 arguments: start time (hour, minute, second) and duration time (hour, minute, second)", '$'
  
 isAlarmOn db 0
@@ -27,11 +27,11 @@ isAlarmOn db 0
 ;**********************************************************************************************************************
 ;                                                        BANNER
 ;**********************************************************************************************************************                           
-widthOfBanner equ 40
-allWidth equ 80
-red             equ 4020h
-white           equ 7020h
-black           equ 0020h
+widthOfBanner   equ 40     ; Ширина выводимого баннера
+allWidth        equ 80     ; Полная ширина консоли DOS-box
+red             equ 4020h  ;
+white           equ 7020h  ; Цвета + выводимые символы. 4020h : 40 - код красного цвета, 20 - код символа залитого прямоугольника
+black           equ 0020h  ;
 
 wakeUpText 	dw widthOfBanner dup(red)
 			dw 4 dup(red), white, 5 dup(red), white, 2 dup(red), 2 dup(white), red, white, red, 2 dup(white), red, 3 dup(white), 4 dup(red), white, 2 dup(red), white, red, 3 dup(white), 4 dup(red)
@@ -44,8 +44,8 @@ wakeUpText 	dw widthOfBanner dup(red)
 offWakeUp	dw widthOfBanner dup(black)
 			dw widthOfBanner dup(black)
 			dw widthOfBanner dup(black)
-			dw widthOfBanner dup(black)       
-			dw widthOfBanner dup(black)
+			dw widthOfBanner dup(black) ; Сплошной баннер из черного цвета, который отобразиться поверх оповещения будильника, 
+			dw widthOfBanner dup(black) ; чтобы его закрасить, когда его необходимо убрать
 			dw widthOfBanner dup(black)
 			dw widthOfBanner dup(black)     
 ;**********************************************************************************************************************
@@ -58,19 +58,19 @@ handler PROC                          ; Новый обработчик прерывания
 	pushf                             ;
 	                                  ;
 	call cs:intOldHandler             ; Вызываем старный обработчик прерывания
-	push    ds                        ;
-    push    es                        ;
-	push    ax                        ;
-	push    bx                        ; Сохраняем регистры
-    push    cx                        ;
-    push    dx                        ;
-	push    di                        ;
+	push ds                           ;
+    push es                           ;
+	push ax                           ;
+	push bx                           ; Сохраняем регистры
+    push cx                           ;
+    push dx                           ;
+	push di                           ;
                                       ;
 	push cs                           ;
 	pop ds                            ;
                                       ;
-	mov     ah, 02h                   ;	02H ¦AT¦ читать время из "постоянных" (CMOS) часов реального времени
-	int     1Ah                       ;   выход: CH = часы в коде BCD   (пример: CX = 1243H = 12:43) 
+	mov ah, 02h                       ;	02H ¦AT¦ читать время из "постоянных" (CMOS) часов реального времени
+	int 1Ah                           ;   выход: CH = часы в коде BCD   (пример: CX = 1243H = 12:43) 
 	                                  ;          CL = минуты в коде BCD
                                       ;          DH = секунды в коде BCD
                                       ;   выход: CF = 1, если часы не работают
@@ -114,32 +114,33 @@ stopCheck:                            ; Проверка на возможность выключения будил
 	mov isAlarmOn, dl                 ; Устанавливаем состояние будильника в 0
                                       ;
 endHandler:                           ;
-	pop     di                        ;
-	pop     dx                        ;
-	pop     cx                        ;
-	pop     bx                        ; Восстанавливаем регистры
-	pop     ax                        ;
-	pop     es                        ;
-	pop     ds	                      ;
+	pop di                            ;
+	pop dx                            ;
+	pop cx                            ;
+	pop bx                            ; Восстанавливаем регистры
+	pop ax                            ;
+	pop es                            ;
+	pop ds	                          ;
 	iret                              ;
 ENDP                                  ;
                                       ;	
 printBanner PROC                      ; Процедура вывода баннера
 	push es                           ; В si находится смещение выводимого сообщения
-	push 0B800h                       ;
-	pop es                            ;
+	push 0B800h                       ; Загружаем в 16-битный регистр данных
+                                      ; 0b800h соответствует сегменту дисплея в тестовом режиме
+	pop es                            ; ES=0B800h
                                       ;
-	mov di, 9*allWidth*2 + (allWidth - widthOfBanner)
-	mov cx, 7                         ;
+	mov di, 9*allWidth*2 + (allWidth - widthOfBanner) ; Левый верхний угол начала вывода
+	mov cx, 7                         ; Кол-во строк баннера
 loopPrintBanner:                      ;
-	push cx                           ;
+	push cx                           ; Сохраняем значение cx
                                       ;
-	mov cx, widthOfBanner             ;
-	rep movsw                         ;
+	mov cx, widthOfBanner             ; Загружаем в cx ширину выводимого баннера, т.е. длину строки баннера
+	rep movsw                         ; rep - повторить cx раз, movsw - записать в ячейку es:di данные из ds:si
                                       ;
-	add di, 2*(allWidth - widthOfBanner)
+	add di, 2*(allWidth - widthOfBanner); Смещаемся на новую строку
                                       ;
-	pop cx                            ;
+	pop cx                            ; Восстанавливаем значение cx
 	loop loopPrintBanner              ;
                                       ;
 	pop es                            ;
@@ -158,17 +159,17 @@ parseCMD PROC                         ;
 	cld                               ;
 	mov bx, 80h                       ;
 	mov cl, cs:[bx]                   ; Переходим в смещение, где расположен текст командной строки
-	xor ch, ch                        ;
+	xor ch, ch                        ; В cl загружаем длину командной строки
                                       ;
 	xor dx, dx                        ;
 	mov di, 81h                       ;
                                       ;
-	mov al, ' '                       ; skip spaces at beginning
-	repne scasb	                      ;
+	mov al, ' '                       ; Пропускаем все до пробелов
+	repne scasb	                      ; Найти байт, равный al в блоке из cx байт по адресу es:di
 	xor ax, ax                        ;
                                       ;
-	mov si, di                        ;
-	mov di, offset startHour          ;
+	mov si, di                        ; Загружаем в si смещение, с которого начинаются аргументы
+	mov di, offset startHour          ; Начинаем парсинг с startHour
                                       ;
 parseCMDloop:                         ;
 	mov dl, [si]                      ; Загружаем в dl очередной символ из командной строки
@@ -194,12 +195,12 @@ parseCMDloop:                         ;
 	loop parseCMDloop                 ;
                                       ;
 SpaceIsFound:                         ;
-	mov byte ptr es:[di], al          ;
+	mov byte ptr es:[di], al          ; Заносим переведенное число в необходимое значение
 	cmp di, offset durationSeconds    ; Если последний введенный элемент - продолжительность в секундах - ввод корректный
 	je argsIsGood                     ;
                                       ;
-	inc di                            ;
-	xor ax, ax                        ;
+	inc di                            ; Иначе увеличиваем di на 1 и продолжаем парсинг уже для следующего значения
+	xor ax, ax                        ; Сбрасываем аккумулятор в 0
                                       ;
 	loop parseCMDloop                 ; Если парсинг прошел без ошибок - переходим в argIsGood
 	jmp argsIsGood                    ;
@@ -238,15 +239,16 @@ setHandler PROC                       ; Установка нового обработчика прерываний.
 	push bx                           ;
 	push dx                           ; Сохраняем значения регистров
                                       ;
-	cli                               ; Разрешаем прерывания
+	cli                               ; Запрещаем прерывания (запрет/разрешение необходимо для корректной установки нового обработчика )
                                       ;
 	mov ah, 35h                       ; Функция получения адреса обработчика прерывания
 	mov al, 1Ch                       ; прерывание, обработчик которого необходимо получить (1C - прерывание таймера)
 	int 21h                           ; Вызываем прерывание для выполения функции 
+                                      ; В результате выполнения функции в es:bx помещается адрес текущего обработчика прерывания                                                 
                                       ;
-	;save old handler                 ; Сохраняем старый обработчик
-	mov word ptr [offset intOldHandler], bx
-	mov word ptr [offset intOldHandler + 2], es
+	                                  ; Сохраняем старый обработчик
+	mov word ptr [offset intOldHandler], bx     ;
+	mov word ptr [offset intOldHandler + 2], es ;
                                       ;
 	push ds			                  ; Сохраняем значение ds
 	pop es                            ; Восстанавливаем значение es
@@ -256,7 +258,7 @@ setHandler PROC                       ; Установка нового обработчика прерываний.
 	mov dx, offset handler            ; загружаем в dx смещение нового обработчика прерывания, который будет установлен на место старого обработчика 
 	int 21h                           ; Вызываем прерывание для выполнения функции
                                       ;
-	sti                               ; Запрещаем прерывания
+	sti                               ; Разрешаем прерывания
                                       ;
 	mov ax, 0                         ; Загружаем в ax - 0, т.е. ошибок не произошло
                                       ;
@@ -336,6 +338,8 @@ convertLoop:                          ;
 	mov dl, al                        ; Загружаеи в dl al, т.е.  частное  от деления на 10
 	                                  ; 
 	shl dl, 4                         ; Сдвиг влево на 4 (необходимо для BCD формата)
+	                                  ; Пример: 12 = 0001 0010
+	                                  ;
 	add dl, ah                        ; Добавляем в dl ah, т.е  остаток от деления на 10
 	mov [si], dl                      ; Переписываем элемент в si на новый в формате bcd
                                       ;
