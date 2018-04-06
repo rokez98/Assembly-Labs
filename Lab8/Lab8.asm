@@ -7,7 +7,6 @@
 start:                     ;
 	jmp main               ;
                            ;
-;data                      ;
 startHour       db 0       ;
 startMinutes    db 0       ; Время начала
 startSeconds    db 0       ;
@@ -164,9 +163,15 @@ parseCMD PROC                         ;
 	xor dx, dx                        ;
 	mov di, 81h                       ;
                                       ;
-	mov al, ' '                       ; Пропускаем все до пробелов
-	repne scasb	                      ; Найти байт, равный al в блоке из cx байт по адресу es:di
-	xor ax, ax                        ;
+	mov al, ' '                       ; Пропускаем все пробелы
+	repne scasb	                      ; Найти байт, не равный al в блоке из cx байт по адресу es:di 
+	
+	mov al, ' '
+    repe scasb     
+    dec di     
+    inc cx
+	
+	xor ax, ax                        ;                                                   
                                       ;
 	mov si, di                        ; Загружаем в si смещение, с которого начинаются аргументы
 	mov di, offset startHour          ; Начинаем парсинг с startHour
@@ -199,7 +204,24 @@ SpaceIsFound:                         ;
 	cmp di, offset durationSeconds    ; Если последний введенный элемент - продолжительность в секундах - ввод корректный
 	je argsIsGood                     ;
                                       ;
-	inc di                            ; Иначе увеличиваем di на 1 и продолжаем парсинг уже для следующего значения
+	inc di                            ; Иначе увеличиваем di на 1 и продолжаем парсинг уже для следующего значения  
+	
+    skipSpaces:    
+        push bx
+        
+        mov al, ' '
+        mov bl, [si]
+        inc si
+        dec cx
+                    
+        cmp bl, al            
+                    
+        pop bx
+    je skipSpaces
+    
+    dec si
+    inc cx
+	
 	xor ax, ax                        ; Сбрасываем аккумулятор в 0
                                       ;
 	loop parseCMDloop                 ; Если парсинг прошел без ошибок - переходим в argIsGood
@@ -247,8 +269,8 @@ setHandler PROC                       ; Установка нового обработчика прерываний.
                                       ; В результате выполнения функции в es:bx помещается адрес текущего обработчика прерывания                                                 
                                       ;
 	                                  ; Сохраняем старый обработчик
-	mov word ptr [offset intOldHandler], bx     ;
-	mov word ptr [offset intOldHandler + 2], es ;
+	mov word ptr [offset intOldHandler], bx     ; смещение
+	mov word ptr [offset intOldHandler + 2], es ; сегмент
                                       ;
 	push ds			                  ; Сохраняем значение ds
 	pop es                            ; Восстанавливаем значение es
