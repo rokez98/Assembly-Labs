@@ -24,7 +24,7 @@ Buffer                      db  ?
                                                               
 MaxNumLen                   db  5  
 Len                         db  ?                          ;Contains length of entered string
-buff                        db  MaxNumLen dup (0)              
+buff                        db  5 dup (0)              
                                 
 minus                       db  0  
 
@@ -433,8 +433,9 @@ output proc                       ;
     lea dx, Answer
     mov ah, 09h 
     int 21h  
-                                  ;
-    mov	ax,4ch                    ;Выходим из программы
+        
+    xor ax, ax                              ;
+    mov	ah,4ch                    ;Выходим из программы
     int	21h                       ;
     ret                           ;
 endp                              ;
