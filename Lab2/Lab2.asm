@@ -10,12 +10,12 @@ max_length           equ 200   ; length = 200
  
 Strb db '$'                    ;
 Strl db max_length                                  ; contains str length after input
-Str  db max_length dup('$')                         ; '$$$..' 200 times
+String  db max_length dup('$')                         ; '$$$..' 200 times
                                ;
 SubStrb db '$'                 ;
 SubStrl db max_length          ;     =/=
-SubStr  db max_length dup('$')     ;
-                               ;
+SubString  db max_length dup('$')     ;
+                               ;                                                            
 .code                          ;
 start:                         ;
                                ;@data - DATASEG identeficator
@@ -31,25 +31,36 @@ start:                         ;
     call exitIfNotSingleWord   ;Exit if substring contains 1+ words or spaces before word
       
     xor cx, cx                 ;Reset couter
-    lea si, Str                ;Seting pointer on beginning of Str; mov si, offset Str
+    lea si, String             ;Seting pointer on beginning of Str; mov si, offset Str
     dec si                     ;
     jmp skip_spaces            ;Jump to skip_spaces loop
 
     
     find:                      ;This loop sets si at the begining of next word
         inc si                 ;
-        cmp [si], ' '          ;Compare element of Str with ' '
-        je skip_spaces         ;If current string elem is ' ' - start new search
-        cmp [si], '$'          ;Compare with end of Str
-        je exit                ;If end of string reached - exit
+        push bx 
+        mov bl, [si]               ;
+        cmp bl, ' '          ;Compare element of Str with ' '
+        pop bx
+        je skip_spaces         ;If current string elem is ' ' - start new search 
+        
+        push bx 
+        mov bl, [si]
+        cmp bl, '$'          ;Compare with end of Str    
+        pop bx
+        je exit                ;If end of string reached - exit 
+        
         jmp find               ;If current elem is a character - skip (cause we need to delete whole word, not it's substring)
         
         skip_spaces:           ;This loop skips all spaces before next word
-            inc si
-            cmp [si],' '
+            inc si   
+            push bx 
+            mov bl, [si]
+            cmp bl, ' '
+            pop bx
            je skip_spaces      
            
-        lea di, SubStr         ;Set pointer on beginning of SubString
+        lea di, SubString      ;Set pointer on beginning of SubString
         call searchSubString   ;Serching substring procedure
        jmp find                ;Endless loop
           
@@ -96,17 +107,21 @@ enterSubstring endp            ;
 outputResult proc              ;
     lea dx, msgResult          ;Output Result message
     call outputString          ;
-    lea dx, Str                ;equals to mov dx, offset Str
+    lea dx, String             ;equals to mov dx, offset Str
     call outputString          ;
-    mov ax,4ch               ;
-    int 21h                    ;
+        
+    xor ax, ax    
+    mov ah,4ch               ;
+    int 21h  
+    ret                  ;
 outputResult endp   
 
 outputErrorResult proc              ;
     lea dx, msgError           ;Output Result message
     call outputString          ;          ;
     mov ax, 4ch                ;
-    int 21h                    ;
+    int 21h  
+    ret                  ;
 outputErrorResult endp         ;
                            
 
@@ -114,15 +129,22 @@ exitIfEmpty proc
     push cx
     push di
                    ;
-    lea di, SubStr  
+    lea di, SubString  
     dec di
     
     skip_spaces_sub:           ;This loop skips all spaces before next word
             inc di             ;
-            cmp [di],' '       ;
+            push bx 
+            mov bl, [di]
+            cmp bl,' '       ; 
+            pop bx
            je skip_spaces_sub  ;
-                               ;
-    cmp [di], 0Dh              ;Compare value in al reg with substring's length  
+          
+    push bx 
+    mov bl, [di]                           ;
+    cmp bl, 0Dh              ;Compare value in al reg with substring's length        
+    pop bx
+    error_exit_marker:
     je error_exit              ;If SubStr is empty or consists only of spaces - exit 
        
     pop cx
@@ -134,14 +156,17 @@ exitIfNotSingleWord proc
     push cx
     push di
                    ;
-    lea di, SubStr  
+    lea di, SubString  
     dec di
             
     mov cl, [SubStrl]
     check_substr:             ;This loop skips all spaces before next word
             inc di            ;
-            cmp [di],' '      ;
-           je error_exit      ;
+            push bx 
+            mov bl, [di]
+            cmp bl,' '        ;
+            pop bx      
+           je error_exit_marker ;
     loop check_substr         ;
                               ;
     pop cx                    ;
@@ -172,13 +197,16 @@ searchSubString proc             ;
             je check             ;If cx = 0 -> end of substring reached -> move to check 
           jne comparestr         ;      > 0 -> repeat to compare next pair of symbols 
                                  ;
-        check:                   ;
-            cmp [si], ' '        ;
+        check:      
+            push bx 
+            mov bl, [si]                 ;
+            cmp bl, ' '          ;
+            pop bx
             je Equal             ;
             jne NotEqual         ;
                                  ;
         Equal:                   ;
-            call length          ;Get length word
+            call lengthProc          ;Get length word
             call shift           ;Shift left the rest of string  
             call searchSubString ;Repeat
                                  ;
@@ -196,7 +224,7 @@ shift proc                       ;
     push di                      ;
     push bx                      ;Save 
                                  ;
-    lea ax, Str                  ;Move Str to ax
+    lea ax, String                  ;Move Str to ax
     add al, [Strl]               ;Add Str length to al 
     sub ax,si                    ;Subtract si from ax
     mov cx,ax                    ;Move ax to cx; Now cx containt length of rest of string
@@ -218,22 +246,31 @@ shift proc                       ;
     ret                          ;
 shift endp                       ;
                                  ;
-length proc                      ;
+lengthProc proc                      ;
     push ax                      ;
     skip:                        ;
-    inc si                       ;
-    cmp [si], ' '                ;
+    inc si  
+    push bx 
+    mov bl, [si]                     ;
+    cmp bl, ' '
+    pop bx                ;
     je skip                      ;
     mov ax,si                    ;compare element of Str with ' '  
                                  ;
-    word:                        ;
+    wordMarker:                        ;
     mov dh,[si]                  ;
-    inc si                       ;
-    cmp [si], ' '                ;compare with end of Str
+    inc si    
+    push bx 
+    mov bl, [si]                   ;
+    cmp bl, ' '                  ;compare with end of Str
+    pop bx
     je continue                  ;
-    cmp [si], '$'                ;
+    push bx 
+    mov bl, [si]
+    cmp bl, '$'                  ;
+    pop bx
     je continue                  ;
-    jmp word                     ;
+    jmp wordMarker                     ;
     continue:                    ;
     push si                      ;
     sub si,ax                    ;
@@ -242,6 +279,6 @@ length proc                      ;
     pop si                       ;
     pop ax                       ;
     ret                          ;
-length endp                      ;
+lengthProc endp                      ;
                                  ;
 end start                        ;
