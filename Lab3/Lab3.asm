@@ -15,7 +15,8 @@ ErrorInputArrayLengthMsgStr db  0Dh,'Array length should be geater than 0 and no
                                 
 InputMsgStr                 db  0Dh,'Input '    
 CurrentEl                   db  2 dup(0)
-InputMsgStrEnding           db  ' element (-127..127) : $'
+InputMsgStrEnding           db  ' element (-127..127) : $'     
+enterStr                    db  0Ah, 0Dh, '$'
 
 Answer                      db  2 dup(0)
 ResultMsgStr                db  0Dh, 'Result: $'
@@ -431,6 +432,10 @@ output proc                       ;
     lessThanTen1:                      ;
     
     lea dx, Answer
+    mov ah, 09h 
+    int 21h      
+    
+    lea dx, enterStr
     mov ah, 09h 
     int 21h  
         

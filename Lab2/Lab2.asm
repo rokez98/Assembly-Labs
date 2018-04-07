@@ -5,7 +5,8 @@
 msgEnterString       db "Enter string: $"
 msgEnterSubstring    db 0Ah, 0Dh, "Enter substring: $"
 msgResult            db 0Ah, 0Dh, "Result string: $" 
-msgError             db 0Ah, 0Dh, "Incorrect input! Substring is empty or contains 1+ words or spaces!$"
+msgError             db 0Ah, 0Dh, "Incorrect input! Substring is empty or contains 1+ words or spaces!$" 
+enterStr             db 0Ah, 0Dh, '$'
 max_length           equ 200   ; length = 200
  
 Strb db '$'                    ;
@@ -109,7 +110,10 @@ outputResult proc              ;
     call outputString          ;
     lea dx, String             ;equals to mov dx, offset Str
     call outputString          ;
-        
+           
+    lea dx, enterStr
+    call outputString       
+           
     xor ax, ax    
     mov ah,4ch               ;
     int 21h  
