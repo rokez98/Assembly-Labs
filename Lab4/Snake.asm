@@ -7,12 +7,12 @@ endd MACRO
 	int 21h
 ENDM
 
-clearScreen MACRO
-	push ax
-	mov ax, 0003h
-	int 10h
-	pop ax
-ENDM
+clearScreen MACRO          ;
+	push ax                ; Сохраняем значение ax
+	mov ax, 0003h          ; 00 - установить видеорежим, очистить экран. 03h - режим 80x25
+	int 10h                ; Вызов прерывания для исполнения команды
+	pop ax                 ; Восстанавливаем значение регистра ax
+ENDM                       ;
 ;end macro help
 
 .model small
@@ -109,371 +109,404 @@ deltaTime equ 2
 .code
 
 main:
-	mov ax, @data	;init
-	mov ds, ax
-	mov dataStart, ax
-	mov ax, videoStart
-	mov es, ax
-	xor ax, ax
-
-	clearScreen
-
-	call initAllScreen
-
-	call mainGame
-
-to_close:
-	;clearScreen
-
-	endd
-
-;more macro help
-
-;ZF = 1 - buffer is free
-;AH = scan-code
-CheckBuffer MACRO
-	mov ah, 01h
-	int 16h
-ENDM
-
-ReadFromBuffer MACRO
-	mov ah, 00h
-	int 16h
-ENDM
-
-;result in cx:dx
-GetTimerValue MACRO
-	push ax 
-
-	mov ax, 00h
-	int 1Ah
-
-	pop ax
-ENDM
-
+	mov ax, @data	        ;init
+	mov ds, ax              ;
+	mov dataStart, ax       ; Загружаем начальные данные
+	mov ax, videoStart      ; Загружаем в ax код начала вывода в видеобуффер
+	mov es, ax              ; Загружаем ax в es
+	xor ax, ax              ; Обнуляем ax
+                            ;
+	clearScreen             ; Очищаем консоль
+                            ;
+	call initAllScreen      ; Инициализируем экран
+                            ;
+	call mainGame           ; Переходим в основной цикл игры
+                            ;
+to_close:                   ;
+	;clearScreen            ;
+                            ;
+	endd                    ;
+                            ;
+;more macro help            ;
+                            ;
+;ZF = 1 - buffer is free    ;
+;AH = scan-code             ;
+CheckBuffer MACRO           ; Проверяем - был ли введен символ с клавиатуры
+	mov ah, 01h             ;   
+	int 16h                 ;
+ENDM                        ;
+                            ;
+ReadFromBuffer MACRO        ; Считываем нажатую клавишу
+	mov ah, 00h             ;
+	int 16h                 ;
+ENDM                        ;
+                            ;
+;result in cx:dx            ;
+GetTimerValue MACRO         ;
+	push ax                 ;
+                            ;
+	mov ax, 00h             ;
+	int 1Ah                 ;
+                            ;
+	pop ax                  ;
+ENDM                        ;
+                            ;
 ;end macro help
-
-;procedure help
-
-initAllScreen PROC
-	mov si, offset screen
-	xor di, di
-
-	mov cx, xSize*ySize
-	rep movsw
-
-	;load base snake
-
-	xor ch, ch
-	mov cl, snakeSize
-	mov si, offset snakeBody
-
-loopInitSnake:
-	mov bx, [si]
-	add si, PointSize
+                        ;
+;procedure help         ;
+                        ;
+initAllScreen PROC      ;
+	mov si, offset screen   ; В si загружаем 
+	xor di, di              ; Обнуляем di
+                            ; Теперь ds:si указывает на символы, которые мы будет выводить
+                            ; а es:di на di'ый символ консоли 
+	mov cx, xSize*ySize     ; Загружаем в cx кол-во символов в консоли, т.е. 80x25                                    
+	rep movsw               ; Переписываем последовательно все cx символов из ds:si в консоль es:di 
+                            ;
+                            ;
+	xor ch, ch              ; Обнуляем ch
+	mov cl, snakeSize       ; Загружаем в cl размер змейки
+	mov si, offset snakeBody; В si загружаем смещения начала тела змейки
+                            ;
+loopInitSnake:              ; Цикл, в котором мы выводим тело змейки
+	mov bx, [si]            ; Загружаем в si очередной символ тела змейки
+	add si, PointSize       ; Добавляем к si PointSize, т.е. 2, т.к. каждая точка занимает 2 байта (цвет + символ)
 	
 	;get pos as (bh + (bl * xSize))*oneMemoBlock
-	call CalcOffsetByPoint
-
-	mov di, bx
-
-	mov ax, snakeBodySymbol
-	stosw
-	loop loopInitSnake
-
-	call GenerateRandomApple
-
-	ret
-ENDP
+	call CalcOffsetByPoint  ; Получаем смещение выводимого символа в видеобуффере
+                            ;
+	mov di, bx              ; загружаем в di позицию
+                            ;
+	mov ax, snakeBodySymbol ; Загружаем в ax выводимый символ
+	stosw                   ; Выводим
+	loop loopInitSnake      ;
+                            ;
+	call GenerateRandomApple; Генерируем яблоко в случайных координатах
+                            ;
+	ret                     ;
+ENDP                        ;
 
 ;get pos as (bh + (bl * xSize))*oneMemoBlock
 ;input: point (x,y) in bx
-;output: offser in bx
-CalcOffsetByPoint PROC
-	push ax dx
-	
-	xor ah, ah
-	mov al, bl
-	mov dl, xSize
-	mul dl
-	mov dl, bh
-	xor dh, dh
-	add ax, dx
-	mov dx, oneMemoBlock	;????? ??????? ?????
-	mul dx
-	mov bx, ax
-
-	pop dx ax
-	ret
-ENDP
+;output: offset in bx
+CalcOffsetByPoint PROC      ;    
+	push ax                 ; Сохраняем значения регистров ax и dx
+	push dx                 ;
+	                        ;
+	xor ah, ah              ; Обнуляем ah
+	mov al, bl              ; Загружаем в al bl
+	mov dl, xSize           ; В dl загружаем xSize - размер строки
+	mul dl                  ; Умножаем al на dl
+	mov dl, bh              ; Загружаем в dl bh
+	xor dh, dh              ; Обнуляем dh
+	add ax, dx              ; Добавляем к ax dx
+	mov dx, oneMemoBlock	; Загружаем в dx oneMemoBlock - длину каждого блока
+	mul dx                  ; Умножаем на размер блока
+	mov bx, ax              ; Загружаем ax в bx
+                            ;
+	pop dx                  ; Восстанавливаем значения регистров dx и ax
+	pop ax                  ;
+	ret                     ;
+ENDP                        ;
 
 ;change snake body in array
 ;old last element is always saved
 ;delete old last element from screen
-MoveSnake PROC
-	push ax bx cx si di es
-
-	mov al, snakeSize
-	xor ah, ah 		;? ah - ????? ???????
-	mov cx, ax 		;cx - ??????? ???-?? ???????
-	mov bx, PointSize
-	mul bx			;?????? ??????? ? ax ???????? ??????? ? ?????? ???????????? ?????? ???????
-	mov di, offset snakeBody
-	add di, ax 		;di - ????? ?????????? ????? ?????????? ???????? ???????
-	mov si, di
-	sub si, PointSize 			;si - ????? ?????????? ???????? ???????
-
-	push di
-	;??????? ????? ?????? ? ??????
-	mov es, videoStart
-	mov bx, ds:[si]
-	call CalcOffsetByPoint
-	mov di, bx			;?????????? ??????, ???? ????? ?????? ??????
-	mov ax, space
-	stosw
-
-	pop di
-
-	mov es, dataStart	;??? ?????? ? ???????
-	std				;???? ?? ????? ? ??????
-	rep movsw
-
-	mov bx, snakeBody 	;??????? ??????? ??????
-
-	add bh, Bmoveright
-	add bl, Bmovedown	;????? ??????? ??????
-	mov snakeBody, bx	;????????? ????? ??????? ??????
-	;??? ???? ? ?????? ????????
-
-	pop es di si cx bx ax
-	ret
-ENDP
+MoveSnake PROC              ;
+	push ax                 ;
+	push bx                 ;
+	push cx                 ;
+	push si                 ; Сохраняем значения регистров
+	push di                 ;
+	push es                 ;
+                            ;
+	mov al, snakeSize       ; В al загружаем длину змейки
+	xor ah, ah 		        ; Обнуляем ah
+	mov cx, ax 		        ; Загружаем в cx ax
+	mov bx, PointSize       ; Загружаем в bx размер точки на экране
+	mul bx			        ; Теперь в ax реальная позиция в памяти относительно начала массива
+	mov di, offset snakeBody; Загружаем в di смещение тела змейки
+	add di, ax 		        ; di - адрес следующего после последнего элемента массива
+	mov si, di              ; Загружаем di в si
+	sub si, PointSize 	    ; si - адрес последнего элемента массива
+                            ;
+	push di                 ; Сохраняем значение di
+	                        ; Удаляем конец змейки с экрана
+	mov es, videoStart      ; Загружаем в es смещение видеобуффера
+	mov bx, ds:[si]         ; Загружаем в bx последний элемент змейки
+	call CalcOffsetByPoint  ; Вычисляем ее позицию на экране
+	mov di, bx			    ; Заносим позицию, которую будем очищать в di
+	mov ax, space           ; Загружаем в ax пустую клетку
+	stosw                   ; Записываем
+                            ;
+	pop di                  ; Восстанавливаем di
+                            ;
+	mov es, dataStart	    ; Для работы с данными
+	std				        ; Идем от конца к началу
+	rep movsw               ;
+                            ;
+	mov bx, snakeBody 	    ; Загружаем в bx текущую позицию головы
+                            ;
+	add bh, Bmoveright      ; Обновляем координаты головы
+	add bl, Bmovedown	    ; 
+	mov snakeBody, bx	    ; сохраняем новую позицию головы
+	                        ; 
+	                        ; теперь все тело в памяти сдвинуто                           ;
+	pop es                  ;
+	pop di                  ;
+	pop si                  ;
+	pop cx                  ; Восстанавливаем значения регистров
+	pop bx                  ;
+	pop ax                  ;
+	ret                     ;
+ENDP                        ;
 
 mainGame PROC
-	push ax bx cx dx ds es
-
-checkAndMoveLoop:
-	
-	CheckBuffer
-	jnz skipJmp2
-	jmp far ptr noSymbolInBuff
-
-skipJmp2:
-	ReadFromBuffer
-
-	cmp ah, KExit		;exit key is pressed
-	jne skipJmp
-
-	jmp far ptr endLoop
-
-skipJmp:
-	cmp ah, KMoveLeft	;move left key is pressed
-	je setMoveLeft
-
-	cmp ah, KMoveRight	;move right key is pressed
-	je setMoveRight
-
-	cmp ah, KMoveUp		;move up key is pressed
-	je setMoveUp
-
-	cmp ah, KMoveDown	;move down key is pressed
-	je setMoveDown
-
-	cmp ah, KUpSpeed		;move up key is pressed
-	je setSpeedUp
-
-	cmp ah, KDownSpeed	;move down key is pressed
-	je setSpeedDown
-
-	jmp noSymbolInBuff
-
-setMoveLeft:
-	mov Bmoveright, backwardVal
-	mov Bmovedown, stopVal
-	jmp noSymbolInBuff
-
-setMoveRight:
-	mov Bmoveright, forwardVal
-	mov Bmovedown, stopVal
-	jmp noSymbolInBuff
-
-setMoveUp:
-	mov Bmoveright, stopVal
-	mov Bmovedown, backwardVal
-	jmp noSymbolInBuff
-
-setMoveDown:
-	mov Bmoveright, stopVal
-	mov Bmovedown, forwardVal
-	jmp noSymbolInBuff
-
-setSpeedUp:
-	mov ax, waitTime
-	cmp ax, minWaitTime
-	je noSymbolInBuff			;?????? ?????? ????????? ????? ????????
-	
-	sub ax, deltaTime
-	mov waitTime, ax 			;???????? ????? ???????? ????????
-
-	mov es, videoStart
+	push ax                      ;
+	push bx                      ;
+	push cx                      ;
+	push dx                      ; Сохраняем значения регистров
+	push ds                      ;
+	push es                      ;
+                                 ;
+checkAndMoveLoop:                ;
+	                             ;
+	CheckBuffer                  ; Проверяем - был ли введен символ
+	jnz skipJmp2                 ; Если да - skipJmp2
+	jmp far ptr noSymbolInBuff   ; Иначе noSymbolInBuff
+                                 ;
+skipJmp2:                        ;
+	ReadFromBuffer               ; Считываем символ из буффера
+                                 ;
+	cmp ah, KExit		         ; Если была нажата кнопка выхода
+	jne skipJmp                  ; Иначе skipJmp
+                                 ;
+	jmp far ptr endLoop          ; Заканчиваем игру, прыгая в endLoop
+                                 ;
+skipJmp:                         ;
+	cmp ah, KMoveLeft	         ; Если была нажата кнопка "влево"
+	je setMoveLeft               ;
+                                 ;
+	cmp ah, KMoveRight	         ; Если была нажата кнопка "вправо"
+	je setMoveRight              ;
+                                 ;
+	cmp ah, KMoveUp		         ; Если была нажата кнопка "вверх"
+	je setMoveUp                 ;
+                                 ;
+	cmp ah, KMoveDown	         ; Если была нажата кнопка "вниз"
+	je setMoveDown               ;
+                                 ;
+	cmp ah, KUpSpeed		     ; move up key is pressed
+	je setSpeedUp                ;
+                                 ;
+	cmp ah, KDownSpeed	         ; move down key is pressed
+	je setSpeedDown              ;
+                                 ;
+	jmp noSymbolInBuff           ;
+                                 ;
+setMoveLeft:                     ;
+	mov Bmoveright, backwardVal  ; Направление вправо - отрицательное
+	mov Bmovedown,  stopVal      ; Направление вниз - нулевое
+	jmp noSymbolInBuff           ;
+                                 ;
+setMoveRight:                    ;
+	mov Bmoveright, forwardVal   ; Направление вправо - положительное
+	mov Bmovedown, stopVal       ; Направление вправо - нулевое
+	jmp noSymbolInBuff           ;
+                                 ;
+setMoveUp:                       ; Направление вправо - нулевое
+	mov Bmoveright, stopVal      ; Направление вниз - отрицательное
+	mov Bmovedown, backwardVal   ;
+	jmp noSymbolInBuff           ;
+                                 ;
+setMoveDown:                     ;
+	mov Bmoveright, stopVal      ; Направление вправо - нулевое
+	mov Bmovedown, forwardVal    ; Направление вниз - положительное
+	jmp noSymbolInBuff           ;
+                                 ;
+setSpeedUp:                      ;
+	mov ax, waitTime             ;
+	cmp ax, minWaitTime          ;
+	je noSymbolInBuff			 ;?????? ????;?? ????????? ????? ????????
+	                             ;
+	sub ax, deltaTime            ;
+	mov waitTime, ax 			 ;???????? ??;??? ???????? ????????
+                                 ;
+	mov es, videoStart           ;
 	mov di, offset speed - offset screen	;???????? ???????? ??????? ????????
-	mov ax, es:[di]
-	inc ax
-	mov es:[di], ax
-
-	jmp noSymbolInBuff
-
-setSpeedDown:
-	mov ax, waitTime
-	cmp ax, maxWaitTime
-	je noSymbolInBuff			;?????? ?????? ??????????? ????? ????????
-	
-	add ax, deltaTime
-	mov waitTime, ax 			;???????? ????? ???????? ????????
-
-	mov es, videoStart
+	mov ax, es:[di]              ;
+	inc ax                       ;
+	mov es:[di], ax              ;
+                                 ;
+	jmp noSymbolInBuff           ;
+                                 ;
+setSpeedDown:                    ;
+	mov ax, waitTime             ;
+	cmp ax, maxWaitTime          ;
+	je noSymbolInBuff			 ;?????? ???;??? ??????????? ????? ????????
+	                             ;
+	add ax, deltaTime            ;
+	mov waitTime, ax 			 ;???????? ?;???? ???????? ????????
+                                 ;
+	mov es, videoStart           ;
 	mov di, offset speed - offset screen	;???????? ???????? ??????? ????????
-	mov ax, es:[di]
-	dec ax
-	mov es:[di], ax
+	mov ax, es:[di]              ;
+	dec ax                       ;
+	mov es:[di], ax              ;
+                                 ;
+	jmp noSymbolInBuff           ;
+                                 ;
+noSymbolInBuff:                  ;
+	call MoveSnake               ; Передвигаем змейку на экране
+                                 ;
+	mov bx, snakeBody 		     ; В bx голова змеи
+checkSymbolAgain:                ;
+	call CalcOffsetByPoint	     ; В bx смещение памяти, соответствующее точке
+                                 ;
+	mov es, videoStart           ; Загружаем в es смещение видеобуффера
+	mov ax, es:[bx]		         ; Загружаем в ax символ куда должна стать змейка
+                                 ;
+	cmp ax, appleSymbol          ; Если этот символ - яблоко
+	je AppleIsNext               ;
+                                 ;
+	cmp ax, snakeBodySymbol      ; Если этот символ - тело змейки
+	je SnakeIsNext               ;
+                                 ;
+	cmp ax, HWallSymbol          ; Если этот символ - горизонтальная стена
+	je PortalUpDown              ;
+                                 ; 
+	cmp ax, VWallSymbol          ; Если этот символ - верникальная стена
+	je PortalLeftRight           ;
+                                 ;
+	cmp ax, VWallSpecialSymbol   ; 
+	je PortalLeftRight           ;
+                                 ;
+	jmp GoNextIteration          ;
+                                 ;
+AppleIsNext:                     ;
+	call incSnake                ; Увеличиваем длину змейки
+	call GenerateRandomApple     ; Генерируем новое яблоко
+	call incScore                ; Увеличиваем счет
+	jmp GoNextIteration          ; Переходим к следующей итерации
+SnakeIsNext:                     ;
+	call incSnake                ;
+	jmp endLoop                  ; Заканчиваем игру
+PortalUpDown:                    ;
+	mov bx, snakeBody            ; Загружаем в bx голову змейки
+	sub bl, yField               ; Отнимаем от y координаты высоту консоли 
+	cmp bl, 0		             ; Определяем верхняя это или нижняя граница
+	jg writeNewHeadPos           ; Перерисовываем голову змейки
+                                 ;
+	                             ; Если это была верхняя стена
+	add bl, yField*2             ; Корректируем координаты 
+                                 ;
+writeNewHeadPos:                 ;
+	mov snakeBody, bx	         ; Записываем новое значение головы
+	jmp checkSymbolAgain	     ; и отправляем его заново на сравнение
+                                 ;
+PortalLeftRight:                 ;
+	mov bx, snakeBody            ;
+	sub bh, xField               ;
+	cmp bh, 0		             ; 
+	jg writeNewHeadPos           ;  Аналогично обрабатываем случай с вертикальной стеной
+                                 ;
+	add bh, xField*2             ;
+	jmp writeNewHeadPos          ;
+                                 ;
+GoNextIteration:                 ;
+	mov bx, snakeBody		     ; Загружаем в bx новое начало змейки
+	call CalcOffsetByPoint       ; Вычисляем ее позицию
+	mov di, bx                   ; Теперь в di смещение позиции bx в консоли
+	mov ax, snakeBodySymbol      ; Записываем в ax символ змейки 
+	stosw                        ; Записываем в консоль
+                                 ;
+	call Sleep                   ; Задержка
+                                 ;
+	jmp checkAndMoveLoop         ;
+                                 ;
+endLoop:                         ;
+	pop es                       ;
+	pop ds                       ;
+	pop dx                       ; Восстанавливаем значения регистров
+	pop cx                       ;
+	pop bx                       ;
+	pop ax                       ;
+	ret                          ;
+ENDP                             ;
+                                 ;
+Sleep PROC                       ;
+	push ax                      ;
+	push bx                      ; Сохраняем регистры
+	push cx                      ;
+	push dx                      ;
+                                 ;
+	GetTimerValue                ; Получаем текущее значение времени
+                                 ;
+	add dx, waitTime             ; Добавляем к dx значение задержки
+	mov bx, dx                   ; Загружаем его в bx
+                                 ;
+checkTimeLoop:                   ;
+	GetTimerValue                ; Получаем текузее значение времени
+	cmp dx, bx			         ; ax - current value, bx - needed value
+	jl checkTimeLoop             ; Если еще рано - уходим на следующую итерацию 
+                                 ;
+	pop dx                       ;
+	pop cx                       ;
+	pop bx                       ; Восстанавливаем значения регистров
+	pop ax                       ;
+	ret                          ;
+ENDP                             ;
 
-	jmp noSymbolInBuff
-
-noSymbolInBuff:
-	;???????? ??? ????
-	call MoveSnake
-
-	mov bx, snakeBody 		;? bx ????? ?????? ????
-checkSymbolAgain:
-	call CalcOffsetByPoint	;? bx ???????? ? ??????, ??????????????? ?????
-
-	mov es, videoStart
-	mov ax, es:[bx]		;? ax ??????? ?????? ? ?????? es:bx (???? ?????? ????? ??????)
-
-	cmp ax, appleSymbol
-	je AppleIsNext
-
-	cmp ax, snakeBodySymbol
-	je SnakeIsNext
-
-	cmp ax, HWallSymbol
-	je PortalUpDown
-
-	cmp ax, VWallSymbol
-	je PortalLeftRight
-
-	cmp ax, VWallSpecialSymbol
-	je PortalLeftRight
-
-	jmp GoNextIteration
-
-AppleIsNext:
-	call incSnake
-	call GenerateRandomApple
-	call incScore
-	jmp GoNextIteration
-SnakeIsNext:
-	call incSnake
-	jmp endLoop
-PortalUpDown:
-	mov bx, snakeBody
-	sub bl, yField
-	cmp bl, 0		;??????? ??? ?????? ???????
-	jg writeNewHeadPos
-
-	;???? ?? ???, ????????????? ??? ???? ??????? ?????
-	add bl, yField*2
-
-writeNewHeadPos:
-	mov snakeBody, bx		;?????????? ????? ???????? ??????
-	jmp checkSymbolAgain	;? ?????????? ??? ?????? ?? ?????????
-
-PortalLeftRight:
-	mov bx, snakeBody
-	sub bh, xField
-	cmp bh, 0		;????? ??? ?????? ???????
-	jg writeNewHeadPos
-
-	;???? ?? ???, ????????????? ??? ???? ??????? ?????
-	add bh, xField*2
-	jmp writeNewHeadPos
-
-GoNextIteration:
-	mov bx, snakeBody		;??????? ????? ?????? ??????
-	call CalcOffsetByPoint
-	mov di, bx
-	mov ax, snakeBodySymbol
-	stosw
-
-	call Sleep
-
-	jmp checkAndMoveLoop
-
-endLoop:
-	;todo: end logo
-	pop es ds dx cx bx ax
-	ret
-ENDP
-
-Sleep PROC
-	push ax bx cx dx
-
-	GetTimerValue
-
-	add dx, waitTime
-	mov bx, dx
-
-checkTimeLoop:
-	GetTimerValue
-	cmp dx, bx			;ax - current value, bx - needed value
-	jl checkTimeLoop
-
-	pop dx cx bx ax
-	ret
-ENDP
-
-GenerateRandomApple PROC
-	push ax bx cx dx es
-	
-loop_random:
-	;????????? ??????? ?????
-	;ch - ???, cl - ??????, dh - ???????, dl - ????? ???? ???????
-	mov ah, 2Ch
-	int 21h
-
-	mov al, dl
-	mul dh 				;? ax ?????? ????? ??? ???????
-
-	xor dx, dx			;????? ?? ??????? ???????????? ? ???????? ??????? ?????????
-	mov cx, xField
-	div cx				;? dx - ????????? (??????? ?? x); ? ax - ??? ?????
-	add dx, 2			;????????? ???????? ?? ?????? ???
-	mov bh, dl 			;????????? ?????????? x
-
-	xor dx, dx
-	mov cx, yField
-	div cx
-	add dx, 2			;??????? ?? y
-
-	mov bl, dl 			;????????? ?????????? y. ?????? ? bx ?????????? ??????
-
-	call CalcOffsetByPoint
-	mov es, videoStart
-	mov ax, es:[bx]
-
-	cmp ax, space
-	jne loop_random		;???? ??? ???-???? ?? ?????? - ???????? ??????? ??? ?????
-
-	mov ax, appleSymbol
-	mov es:[bx], ax
-
-	pop es dx cx bx ax
-	ret
-ENDP
+GenerateRandomApple PROC  ;
+	push ax               ;
+	push bx               ;
+	push cx               ; Сохраняем значения регистров
+	push dx               ;
+	push es               ;
+	                      ;
+loop_random:              ;
+	mov ah, 2Ch           ; Считываем текущее время
+	int 21h               ; ch - час, cl - минуты, dh - секунды, dl - мсек
+                          ;
+	mov al, dl            ; Получаем случайное число
+	mul dh 				  ; Теперь в ax число для рандома
+                          ;
+	xor dx, dx			  ; Обнуляем dx
+	mov cx, xField        ; В cx загружаем ширину поля
+	div cx				  ; Получаем номер строки яблока
+	add dx, 2			  ; Добавляем смещение от начала оси
+	mov bh, dl 		      ; Сохраняем координату x
+                          ;
+	xor dx, dx            ;
+	mov cx, yField        ;
+	div cx                ; Аналогично получаем y координату
+	add dx, 2			  ;
+	mov bl, dl 			  ; Теперь в bx находится координата яблока
+                          ;
+	call CalcOffsetByPoint; Расситываем смещение
+	mov es, videoStart    ; Загружаем в es начало видеобуффера
+	mov ax, es:[bx]       ; В ax загружаем символ, который расположен по координатам, в которых мы хотим расположить яблоко
+                          ;
+	cmp ax, space         ; Сравниваем их с пробелом(т.е. пустой клеткой). 
+	jne loop_random		  ; Если в клетке что-то есть - генерируем новые координаты
+                          ;
+	mov ax, appleSymbol   ; Загружаем в ax символ яблока
+	mov es:[bx], ax       ; Выводим символ яблока
+                          ;
+	pop es                ;
+	pop dx                ;
+	pop cx                ; Восстанавливаем регистры
+	pop bx                ;
+	pop ax                ;
+	ret                   ;
+ENDP                      ;
 
 ;save tail of snake if no overloading
 incSnake PROC
-	push ax bx di es
+	push ax
+	push bx
+	push di
+	push es
 
 	mov al, snakeSize
 	cmp al, snakeMaxSize
@@ -499,12 +532,18 @@ incSnake PROC
 	mov es:[bx], snakeBodySymbol
 	
 return:
-	pop es di bx ax
+	pop es
+	pop di
+	pop bx
+	pop ax
 	ret
 ENDP
 
 incScore PROC
-	push ax es si di
+	push ax
+	push es
+	push si
+	push di
 	mov es, videoStart
 	mov cx, scoreSize 					;max pos value
 	mov di, offset score + (scoreSize - 1)*oneMemoBlock - offset screen	;???????? ???????? ?????????? ??????? ?????
@@ -526,7 +565,10 @@ nineNotNow:
 	inc ax
 	mov es:[di], ax
 return_incScore:
-	pop di si es ax
+	pop di
+	pop si
+	pop es
+	pop ax
 	ret
 ENDP
 
