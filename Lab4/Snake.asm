@@ -1,6 +1,3 @@
-;???? "??????"
-
-
 ;macro HELP
 endd MACRO
 	mov ah, 4ch
@@ -22,41 +19,41 @@ ENDM                       ;
 .data
 
 ;key bindings (configuration)
-KUpSpeed    equ 48h	;Up key
-KDownSpeed  equ 50h	;Down key
-KMoveUp     equ 11h	;W key
-KMoveDown   equ 1Fh	;S key
-KMoveLeft   equ 1Eh	;A key
-KMoveRight  equ 20h	;D key
-KExit       equ 01h ;ESC key
-
-xSize equ 80
-ySize equ 25
-xField equ 50
-yField equ 21
-oneMemoBlock equ 2
-scoreSize equ 4
-
-videoStart dw 0B800h
-dataStart dw 0000h
-timeStart dw 0040h
-timePosition dw 006Ch
-
-space equ 0020h
-snakeBodySymbol equ 0A40h
-appleSymbol equ 0B0Fh
-VWallSymbol equ 0FBAh
-HWallSymbol equ 0FCDh
-VWallSpecialSymbol equ 0FCCh
+KUpSpeed    equ 48h	         ;Up key
+KDownSpeed  equ 50h	         ;Down key
+KMoveUp     equ 11h	         ;W key
+KMoveDown   equ 1Fh	         ;S key
+KMoveLeft   equ 1Eh	         ;A key
+KMoveRight  equ 20h	         ;D key
+KExit       equ 01h          ;ESC key
+                             ;
+xSize       equ 80           ; Ширина консоли
+ySize       equ 25           ; Высота консоли
+xField      equ 50           ; Ширина поля
+yField      equ 21           ; Высота поля
+oneMemoBlock equ 2           ; Размер одной "клетки" консоли
+scoreSize equ 4              ; Длина блока счета
+                             ;
+videoStart   dw 0B800h       ; Смещение видеобуффера
+dataStart    dw 0000h        ;
+timeStart    dw 0040h        ;
+timePosition dw 006Ch        ;
+                             ;
+space equ 0020h              ; Пустой блок с черным фоном
+snakeBodySymbol    equ 0A40h ; Символ тела змейки
+appleSymbol        equ 0B0Fh ; Символ яблока
+VWallSymbol        equ 0FBAh ; Символ вертикальной стены
+HWallSymbol        equ 0FCDh ; Символ горизонтальной стены
+VWallSpecialSymbol equ 0FCCh ; Символ перекрещивания стен
 
 fieldSpacingBad equ space, VWallSymbol, xField dup(space)
 fieldSpacing equ fieldSpacingBad, VWallSymbol
-rbSym equ 0CFDCh	;white block with red background
-rbSpc equ 0CF20h	;space with red background
-ylSym equ 06FDCh	;white block with yellow background
-ylSpc equ 06F20h	;space with yellow background
-grSym equ 02FDBh	;white block with green background
-grSpc equ 02F20h	;space with green background
+rbSym equ 0CFDCh	         ; Белый блок с красным фоном white block with red background
+rbSpc equ 0CF20h	         ; Пробел с красным фоном space with red background
+ylSym equ 06FDCh	         ; Белый блок с желтым фоном white block with yellow background
+ylSpc equ 06F20h	         ; Пробел с желтым фоном space with yellow background
+grSym equ 02FDBh	         ; Белый блок с зеленым фоном white block with green background
+grSpc equ 02F20h	         ; Пустой блок с белым фоном space with green background
 
 screen	dw xSize dup(space)
 		dw space, 0FC9h, xField dup(HWallSymbol), 0FCBh, xSize - xField - 5 dup(HWallSymbol), 0FBBh, space
@@ -77,12 +74,12 @@ secondF	dw fieldSpacing, xSize - xField - 5 dup(ylSpc), VWallSymbol, space
 		dw fieldSpacing, xSize - xField - 5 dup(ylSpc), VWallSymbol, space
 delim2	dw fieldSpacingBad, 0FCCh, xSize - xField - 5 dup(HWallSymbol), 0FB9h, space
 thirdF	dw fieldSpacing, xSize - xField - 5 dup(grSpc), VWallSymbol, space
-		dw fieldSpacing, grSpc, 02F4Dh, 02F61h, 02F64h, 02F65h, grSpc, 02F62h, 02F79h, 02F3Ah, 10 dup(grSpc), 02FDCh, 3 dup(grSym), 02FDCh, grSpc, VWallSymbol, space
-		dw fieldSpacing, 19 dup(grSpc), grSym, 02FDDh, grSym, 02FDEh, grSym, grSpc, VWallSymbol, space
-		dw fieldSpacing, 2 dup(grSpc), 02FDCh, 02FDFh, grSym, 2 dup(grSpc), 2 dup(grSym, grSpc), 02FDEh, 2 dup(grSym), grSpc, grSym, 02FDFh, 02FDDh, grSpc, 5 dup(grSym), grSpc, VWallSymbol, space
-		dw fieldSpacing, 2 dup(grSpc), grSym, 02FDCh, grSym, 2 dup(grSpc), 4 dup(grSym, grSpc), grSym, 02FDFh, 02FDCh, grSpc, grSym, grSpc, 02FDFh, grSpc, grSym, grSpc, VWallSymbol, space
-		dw fieldSpacing, grSpc, 2 dup(02FDCh, 2 dup(grSym, grSpc)), 2 dup(grSym), 02FDDh, grSpc, grSym, 02FDCh, grSym, grSpc, 02FDFh, grSym, 02FDCh, grSym, 02FDFh, grSpc, VWallSymbol, space
-		dw fieldSpacing, xSize - xField - 5 dup(grSpc), VWallSymbol, space
+		dw fieldSpacing, grSpc, 02F43h, 02F6Fh, 02F6Eh, 02F74h,02F72h, 02F6Fh, 02F6Ch,02F73h, 02F3Ah, 15 dup(grSpc), VWallSymbol, space
+		dw fieldSpacing, grSpc, 02F57h, grSpc, 02FC4h, grSpc, 02F55h, 02F70h, 02F18h, 17 dup(grSpc), VWallSymbol, space
+		dw fieldSpacing, grSpc, 02F53h, grSpc, 02FC4h, grSpc, 02F44h, 02F6Fh, 02F77h ,02F6Eh, 02F19h, 15 dup(grSpc), VWallSymbol, space
+		dw fieldSpacing, grSpc, 02F41h, grSpc, 02FC4h, grSpc, 02F4Ch, 02F65h, 02F66h ,02F74h, 02F1Bh, 15 dup(grSpc), VWallSymbol, space
+		dw fieldSpacing, grSpc, 02F44h, grSpc, 02FC4h, grSpc, 02F52h, 02F69h, 02F67h ,02F68h, 02F74h, 02F1Ah, 14 dup(grSpc), VWallSymbol, space
+		dw fieldSpacing, grSpc, 02F45h, 02F73h,02F63h, grSpc, 02FC4h,  grSpc, 02F45h, 02F78h, 02F69h ,02F74h, 02F13h, xSize - xField - 17 dup(grSpc), VWallSymbol, space
 		dw space, 0FC8h, xField dup(HWallSymbol), 0FCAh, xSize - xField - 5 dup(HWallSymbol), 0FBCh, space
 		dw xSize dup(space)
 
@@ -123,13 +120,13 @@ main:
 	call mainGame           ; Переходим в основной цикл игры
                             ;
 to_close:                   ;
-	;clearScreen            ;
+	clearScreen            ;
                             ;
 	endd                    ;
                             ;
 ;more macro help            ;
                             ;
-;ZF = 1 - buffer is free    ;
+;ZF = 1 - Буффер пуст       ;
 ;AH = scan-code             ;
 CheckBuffer MACRO           ; Проверяем - был ли введен символ с клавиатуры
 	mov ah, 01h             ;   
@@ -143,19 +140,16 @@ ENDM                        ;
                             ;
 ;result in cx:dx            ;
 GetTimerValue MACRO         ;
-	push ax                 ;
+	push ax                 ; Сохраняем значения регистра ax
                             ;
-	mov ax, 00h             ;
+	mov ax, 00h             ; Получаем значение времени
 	int 1Ah                 ;
                             ;
-	pop ax                  ;
+	pop ax                  ; Восстанавливаем значение регистра ax
 ENDM                        ;
                             ;
-;end macro help
-                        ;
-;procedure help         ;
-                        ;
-initAllScreen PROC      ;
+                            ;
+initAllScreen PROC          ;
 	mov si, offset screen   ; В si загружаем 
 	xor di, di              ; Обнуляем di
                             ; Теперь ds:si указывает на символы, которые мы будет выводить
@@ -225,7 +219,7 @@ MoveSnake PROC              ;
 	mov cx, ax 		        ; Загружаем в cx ax
 	mov bx, PointSize       ; Загружаем в bx размер точки на экране
 	mul bx			        ; Теперь в ax реальная позиция в памяти относительно начала массива
-	mov di, offset snakeBody; Загружаем в di смещение тела змейки
+	mov di, offset snakeBody; Загружаем в di смещение головы змейки
 	add di, ax 		        ; di - адрес следующего после последнего элемента массива
 	mov si, di              ; Загружаем di в si
 	sub si, PointSize 	    ; si - адрес последнего элемента массива
@@ -237,15 +231,15 @@ MoveSnake PROC              ;
 	call CalcOffsetByPoint  ; Вычисляем ее позицию на экране
 	mov di, bx			    ; Заносим позицию, которую будем очищать в di
 	mov ax, space           ; Загружаем в ax пустую клетку
-	stosw                   ; Записываем
+	stosw                   ; Записываем (пересылаем содерджимое ax в es:di)
                             ;
 	pop di                  ; Восстанавливаем di
                             ;
 	mov es, dataStart	    ; Для работы с данными
 	std				        ; Идем от конца к началу
-	rep movsw               ;
+	rep movsw               ; Переписываем символы из ds:si в es:si
                             ;
-	mov bx, snakeBody 	    ; Загружаем в bx текущую позицию головы
+	mov bx, snakeBody 	    ; Загружаем в bx позицию головы змейки
                             ;
 	add bh, Bmoveright      ; Обновляем координаты головы
 	add bl, Bmovedown	    ; 
@@ -304,36 +298,64 @@ skipJmp:                         ;
                                  ;
 	jmp noSymbolInBuff           ;
                                  ;
-setMoveLeft:                     ;
+setMoveLeft:                     ;  
+    mov al, Bmoveright           ;
+    cmp al, forwardVal           ;
+    jne setMoveLeft_ok           ;
+    jmp noSymbolInBuff           ;
+                                 ;
+    setMoveLeft_ok:              ;
+                                 ;
 	mov Bmoveright, backwardVal  ; Направление вправо - отрицательное
 	mov Bmovedown,  stopVal      ; Направление вниз - нулевое
 	jmp noSymbolInBuff           ;
                                  ;
-setMoveRight:                    ;
+setMoveRight:                    ;  
+    mov al, Bmoveright           ;
+    cmp al, backwardVal          ;
+    jne setMoveRight_ok          ;
+    jmp noSymbolInBuff           ;
+                                 ;
+    setMoveRight_ok:             ;
+                                 ;
 	mov Bmoveright, forwardVal   ; Направление вправо - положительное
 	mov Bmovedown, stopVal       ; Направление вправо - нулевое
 	jmp noSymbolInBuff           ;
                                  ;
-setMoveUp:                       ; Направление вправо - нулевое
+setMoveUp:                       ; Направление вправо - нулевое    
+    mov al, Bmovedown            ;
+    cmp al, forwardVal           ;
+    jne setMoveUp_ok             ;
+    jmp noSymbolInBuff           ;
+                                 ;
+    setMoveUp_ok:                ;
+                                 ;
 	mov Bmoveright, stopVal      ; Направление вниз - отрицательное
 	mov Bmovedown, backwardVal   ;
 	jmp noSymbolInBuff           ;
                                  ;
-setMoveDown:                     ;
+setMoveDown:                     ; 
+    mov al, Bmovedown            ;
+    cmp al, backwardVal          ;
+    jne setMoveDown_ok           ;
+    jmp noSymbolInBuff           ;
+                                 ;
+    setMoveDown_ok:              ;
+                                 ;
 	mov Bmoveright, stopVal      ; Направление вправо - нулевое
 	mov Bmovedown, forwardVal    ; Направление вниз - положительное
 	jmp noSymbolInBuff           ;
                                  ;
 setSpeedUp:                      ;
-	mov ax, waitTime             ;
-	cmp ax, minWaitTime          ;
-	je noSymbolInBuff			 ;?????? ????;?? ????????? ????? ????????
+	mov ax, waitTime             ; Загружаем в ax значение задержки
+	cmp ax, minWaitTime          ; Сравниваем его с минимальным
+	je noSymbolInBuff			 ; Если равно минимальному - пропускаем 
 	                             ;
-	sub ax, deltaTime            ;
-	mov waitTime, ax 			 ;???????? ??;??? ???????? ????????
+	sub ax, deltaTime            ; Уменьшаем время задержки
+	mov waitTime, ax 			 ; Обновляем значение задержки
                                  ;
 	mov es, videoStart           ;
-	mov di, offset speed - offset screen	;???????? ???????? ??????? ????????
+	mov di, offset speed - offset screen	;
 	mov ax, es:[di]              ;
 	inc ax                       ;
 	mov es:[di], ax              ;
@@ -343,13 +365,13 @@ setSpeedUp:                      ;
 setSpeedDown:                    ;
 	mov ax, waitTime             ;
 	cmp ax, maxWaitTime          ;
-	je noSymbolInBuff			 ;?????? ???;??? ??????????? ????? ????????
+	je noSymbolInBuff			 ;
 	                             ;
 	add ax, deltaTime            ;
-	mov waitTime, ax 			 ;???????? ?;???? ???????? ????????
+	mov waitTime, ax 			 ;
                                  ;
 	mov es, videoStart           ;
-	mov di, offset speed - offset screen	;???????? ???????? ??????? ????????
+	mov di, offset speed - offset screen	;
 	mov ax, es:[di]              ;
 	dec ax                       ;
 	mov es:[di], ax              ;
@@ -359,9 +381,9 @@ setSpeedDown:                    ;
 noSymbolInBuff:                  ;
 	call MoveSnake               ; Передвигаем змейку на экране
                                  ;
-	mov bx, snakeBody 		     ; В bx голова змеи
+	mov bx, snakeBody 		     ; В помещаем в bx голову змеи
 checkSymbolAgain:                ;
-	call CalcOffsetByPoint	     ; В bx смещение памяти, соответствующее точке
+	call CalcOffsetByPoint	     ; В bx теперь смещение ячейки консоли с новой головой змейки
                                  ;
 	mov es, videoStart           ; Загружаем в es смещение видеобуффера
 	mov ax, es:[bx]		         ; Загружаем в ax символ куда должна стать змейка
@@ -502,76 +524,73 @@ loop_random:              ;
 ENDP                      ;
 
 ;save tail of snake if no overloading
-incSnake PROC
-	push ax
-	push bx
-	push di
-	push es
-
-	mov al, snakeSize
-	cmp al, snakeMaxSize
-	je return
-
-	;??????????? ????? ?????? ? ???????
-	inc al
-	mov snakeSize, al
-	dec al 				;??? ??? ?????????? ?????? ??????? ?????? ????? ??????
-
-	;??????????????? ?????
-	mov bl, PointSize
-	mul bl 				; ???????? ? ax ?????? ??? ?????????????? ???????? ? ???????
-
+incSnake PROC             ;
+	push ax               ;
+	push bx               ; Сохраняем значения регистров
+	push di               ;
+	push es               ;
+                          ;
+	mov al, snakeSize     ; Загружаем в ax текущий размер змейки
+	cmp al, snakeMaxSize  ; Сравниваем его с макисимальным размером змейки
+	je return             ; Если достигли максимума - выходим
+                          ;
+	                      ; Увеличиваем длину змейки в массиве
+	inc al                ; Увеличиваем al на 1
+	mov snakeSize, al     ; Обновляем размер змейки
+	dec al 				  ; Уменьшаем al на 1. Для дальнейшей работы удобнее старая длина змейки
+                          ;
+	                      ;
+	mov bl, PointSize     ; Восстанавливаем конец
+	mul bl 				  ; Получили в ax нужное для восстановления смещение  
+                          ;
 	mov di, offset snakeBody
-	add di, ax 			;di ????????? ?? ????? ??? "??????????????"
-
-	mov es, dataStart
-	mov bx, es:[di]
-	call CalcOffsetByPoint		;???????? ???????? ???????? ??? ??????????????
-
-	mov es, videoStart
-	mov es:[bx], snakeBodySymbol
-	
-return:
-	pop es
-	pop di
-	pop bx
-	pop ax
-	ret
-ENDP
-
-incScore PROC
-	push ax
-	push es
-	push si
-	push di
-	mov es, videoStart
-	mov cx, scoreSize 					;max pos value
+	add di, ax 			  ; di теперь укаывает на точку для восстановления
+                          ;
+	mov es, dataStart     ; Загружаем в es данные
+	mov bx, es:[di]       ; Загружаем в bx восстанавливаемую точку
+	call CalcOffsetByPoint; Получаем ее координаты
+                          ;
+	mov es, videoStart    ; Загружаем в es смещение видеобуффера
+	mov es:[bx], snakeBodySymbol ; Записываем в точку символ тела змейки
+	                      ;
+return:                   ;
+	pop es                ;
+	pop di                ; Восстанавливаем значения регистров
+	pop bx                ;
+	pop ax                ;
+	ret                   ;
+ENDP                      ;
+                          ;
+incScore PROC             ;
+	push ax               ;
+	push es               ;
+	push si               ;
+	push di               ;
+	mov es, videoStart    ;
+	mov cx, scoreSize 	  ;				;max pos value
 	mov di, offset score + (scoreSize - 1)*oneMemoBlock - offset screen	;???????? ???????? ?????????? ??????? ?????
-
-loop_score:	
-	mov ax, es:[di]
-	cmp al, 39h			;'9' symbol
-	jne nineNotNow
-	
-	sub al, 9			;?????? '0'
-	mov es:[di], ax
-
-	sub di, oneMemoBlock	;return to symbol back
-
-	loop loop_score
-	jmp return_incScore
-
-nineNotNow:
-	inc ax
-	mov es:[di], ax
-return_incScore:
-	pop di
-	pop si
-	pop es
-	pop ax
-	ret
-ENDP
-
-;end procedure help
-
-end main
+                          ;
+loop_score:	              ;
+	mov ax, es:[di]       ;
+	cmp al, 39h			  ;'9' symbol
+	jne nineNotNow        ;
+	                      ;
+	sub al, 9			  ;?????? '0'
+	mov es:[di], ax       ;
+                          ;
+	sub di, oneMemoBlock  ;return to symbol back
+                          ;
+	loop loop_score       ;
+	jmp return_incScore   ;
+                          ;
+nineNotNow:               ;
+	inc ax                ;
+	mov es:[di], ax       ;
+return_incScore:          ;
+	pop di                ;
+	pop si                ;
+	pop es                ;
+	pop ax                ;
+	ret                   ;
+ENDP                      ;
+end main                  ;
