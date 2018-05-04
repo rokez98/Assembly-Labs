@@ -1,9 +1,3 @@
-;macro HELP
-endd MACRO
-	mov ah, 4ch
-	int 21h
-ENDM
-
 clearScreen MACRO          ;
 	push ax                ; Сохраняем значение ax
 	mov ax, 0003h          ; 00 - установить видеорежим, очистить экран. 03h - режим 80x25
@@ -19,13 +13,13 @@ ENDM                       ;
 .data
 
 ;key bindings (configuration)
-KUpSpeed    equ 48h	         ;Up key
-KDownSpeed  equ 50h	         ;Down key
-KMoveUp     equ 11h	         ;W key
-KMoveDown   equ 1Fh	         ;S key
-KMoveLeft   equ 1Eh	         ;A key
-KMoveRight  equ 20h	         ;D key
-KExit       equ 01h          ;ESC key
+KUpSpeed    equ 48h	         ; Up key
+KDownSpeed  equ 50h	         ; Down key
+KMoveUp     equ 11h	         ; W key
+KMoveDown   equ 1Fh	         ; S key
+KMoveLeft   equ 1Eh	         ; A key
+KMoveRight  equ 20h	         ; D key
+KExit       equ 01h          ; ESC key
                              ;
 xSize       equ 80           ; Ширина консоли
 ySize       equ 25           ; Высота консоли
@@ -48,12 +42,12 @@ VWallSpecialSymbol equ 0FCCh ; Символ перекрещивания стен
 
 fieldSpacingBad equ space, VWallSymbol, xField dup(space)
 fieldSpacing equ fieldSpacingBad, VWallSymbol
-rbSym equ 0CFDCh	         ; Белый блок с красным фоном white block with red background
-rbSpc equ 0CF20h	         ; Пробел с красным фоном space with red background
-ylSym equ 06FDCh	         ; Белый блок с желтым фоном white block with yellow background
-ylSpc equ 06F20h	         ; Пробел с желтым фоном space with yellow background
-grSym equ 02FDBh	         ; Белый блок с зеленым фоном white block with green background
-grSpc equ 02F20h	         ; Пустой блок с белым фоном space with green background
+rbSym equ 077DCh	         ; Белый блок с белым фоном
+rbSpc equ 04F20h             ; Пробел с красным фоном и белым цветом символов
+ylSym equ 06FDCh	         ; Белый блок с желтым фоном 
+ylSpc equ 06F20h	         ; Пробел с желтым фоном 
+grSym equ 02FDBh	         ; Белый блок с зеленым фоном 
+grSpc equ 02F20h	         ; Пустой блок с белым фоном
 
 screen	dw xSize dup(space)
 		dw space, 0FC9h, xField dup(HWallSymbol), 0FCBh, xSize - xField - 5 dup(HWallSymbol), 0FBBh, space
@@ -84,12 +78,12 @@ thirdF	dw fieldSpacing, xSize - xField - 5 dup(grSpc), VWallSymbol, space
 		dw xSize dup(space)
 
 snakeMaxSize equ 20
-snakeSize db 2
+snakeSize db 3
 PointSize equ 2
 
 ; XYh coordinates
 ; first position - head
-snakeBody dw 1C0Ch, 1B0Ch, snakeMaxSize-1 dup(0000h)
+snakeBody dw 1D0Ch, 1C0Ch, 1B0Ch, snakeMaxSize-1 dup(0000h)
 
 stopVal equ 00h
 forwardVal equ 01h
@@ -120,9 +114,10 @@ main:
 	call mainGame           ; Переходим в основной цикл игры
                             ;
 to_close:                   ;
-	clearScreen            ;
+	clearScreen             ;
                             ;
-	endd                    ;
+	mov ah, 4ch             ;
+	int 21h                 ;
                             ;
 ;more macro help            ;
                             ;
@@ -235,9 +230,10 @@ MoveSnake PROC              ;
                             ;
 	pop di                  ; Восстанавливаем di
                             ;
-	mov es, dataStart	    ; Для работы с данными
+	mov es, dataStart	    ; Для работы с данными (до этого es указывал на видеобуффер)
 	std				        ; Идем от конца к началу
-	rep movsw               ; Переписываем символы из ds:si в es:si
+	rep movsw               ; Переписываем символы из ds:si в es:di (si - предпоследний элемент змейки, di - последний элемент)
+	                        ; Таким образом смещаем всю змейку на 1 шаг
                             ;
 	mov bx, snakeBody 	    ; Загружаем в bx позицию головы змейки
                             ;
@@ -299,7 +295,7 @@ skipJmp:                         ;
 	jmp noSymbolInBuff           ;
                                  ;
 setMoveLeft:                     ;  
-    mov al, Bmoveright           ;
+    mov al, Bmoveright           ; Проверка на попытку изменения направления на противоположное
     cmp al, forwardVal           ;
     jne setMoveLeft_ok           ;
     jmp noSymbolInBuff           ;
@@ -311,7 +307,7 @@ setMoveLeft:                     ;
 	jmp noSymbolInBuff           ;
                                  ;
 setMoveRight:                    ;  
-    mov al, Bmoveright           ;
+    mov al, Bmoveright           ; Проверка на попытку изменения направления на противоположное
     cmp al, backwardVal          ;
     jne setMoveRight_ok          ;
     jmp noSymbolInBuff           ;
@@ -322,8 +318,8 @@ setMoveRight:                    ;
 	mov Bmovedown, stopVal       ; Направление вправо - нулевое
 	jmp noSymbolInBuff           ;
                                  ;
-setMoveUp:                       ; Направление вправо - нулевое    
-    mov al, Bmovedown            ;
+setMoveUp:                       ; 
+    mov al, Bmovedown            ; Проверка на попытку изменения направления на противоположное
     cmp al, forwardVal           ;
     jne setMoveUp_ok             ;
     jmp noSymbolInBuff           ;
@@ -335,7 +331,7 @@ setMoveUp:                       ; Направление вправо - нулевое
 	jmp noSymbolInBuff           ;
                                  ;
 setMoveDown:                     ; 
-    mov al, Bmovedown            ;
+    mov al, Bmovedown            ; Проверка на попытку изменения направления на противоположное
     cmp al, backwardVal          ;
     jne setMoveDown_ok           ;
     jmp noSymbolInBuff           ;
