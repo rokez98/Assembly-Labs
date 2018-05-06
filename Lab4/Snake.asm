@@ -38,7 +38,7 @@ snakeBodySymbol    equ 0A40h ; Символ тела змейки
 appleSymbol        equ 0B0Fh ; Символ яблока
 VWallSymbol        equ 0FBAh ; Символ вертикальной стены
 HWallSymbol        equ 0FCDh ; Символ горизонтальной стены  
-BWallSymbol        equ 0ECDh ;
+BWallSymbol        equ 4020h ;
 VWallSpecialSymbol equ 0FCCh ; Символ перекрещивания стен
 
 RedVWallSymbol     equ 04FBAh
@@ -92,11 +92,11 @@ black           equ 0020h  ;
 
 wakeUpText 	dw 04FC9h, widthOfBanner-2 dup(RedHWallSymbol), 4FBBh 
             dw RedVWallSymbol, widthOfBanner-2 dup(red), RedVWallSymbol
-			dw RedVWallSymbol, 4 dup(red), white, 5 dup(red), white, 2 dup(red), 2 dup(white), red, 4 dup(white), red, 3 dup(white), red, 3 dup(white), red, 2 dup(white), white, red, 5 dup(red), RedVWallSymbol
+			dw RedVWallSymbol, 4 dup(red), white, 5 dup(red), white, 2 dup(red), 2 dup(white), red, 4 dup(white), red, 3 dup(white), red, 3 dup(white), red, 3 dup(white), 6 dup(red), RedVWallSymbol
 			dw RedVWallSymbol, 4 dup(red), white, 5 dup(red), white, red, white, red, white, red,white, red, red, red, red, red, white, 2 dup(red), white, 2 dup(red), red, white, red, red, white, 5 dup(red), RedVWallSymbol
-			dw RedVWallSymbol, 5 dup(red), 3 dup(white, red), red, 3 dup(white), red, 4 dup(white), red, red, white, red, red, 2 dup(white),red, red, white, 2 dup(red), white, red, 2 dup(red), 2 dup(red), RedVWallSymbol
-			dw RedVWallSymbol, 5 dup(red), 3 dup(white, red), red, white, red, white, red, red,red, red, white, red, red, white, red, red, white, 2 dup(red), red, white, 2 dup(red), white, 5 dup(red), RedVWallSymbol
-			dw RedVWallSymbol, 6 dup(red), 2 dup(white, red), 2 dup(red), white, red, white, red, white, white, 2 dup(white), red, red, white, red, red, 3 dup(white), red, 3 dup(white), 6 dup(red), RedVWallSymbol 
+			dw RedVWallSymbol, 5 dup(red), 3 dup(white, red), red, 3 dup(white), red, 4 dup(white), 2 dup(red), white, 2 dup(red), 2 dup(white), 2 dup(red), white, 2 dup(red), white, 5 dup(red), RedVWallSymbol
+			dw RedVWallSymbol, 5 dup(red), 3 dup(white, red), red, white, red, white, 4 dup(red), white, 2 dup(red), white, 2 dup(red), white, 2 dup(red), red, white, 2 dup(red), white, 5 dup(red), RedVWallSymbol
+			dw RedVWallSymbol, 6 dup(red), 2 dup(white, red), 2 dup(red), white, red, white, red, 4 dup(white), 2 dup(red), white, 2 dup(red), 3 dup(white), red, 3 dup(white), 6 dup(red), RedVWallSymbol 
 			dw RedVWallSymbol, widthOfBanner-2 dup(red), RedVWallSymbol
 			dw RedVWallSymbol, 7 dup(red) ,0CF50h, 0CF72h, 0CF65h, 0CF73h, 0CF73h, 0CF00h, 0CF61h, 0CF6Eh, 0CF79h, 0CF00h, 0CF6Bh, 0CF65h, 0CF79h, 0CF00h, 0CF74h, 0CF6Fh, 0CF00h, 0CF65h, 0CF78h, 0CF69h, 0CF74h,  10 dup(red), RedVWallSymbol
 			dw 4FC8h, widthOfBanner-2 dup(RedHWallSymbol), 4FBCh		
@@ -105,7 +105,18 @@ snakeMaxSize equ 30
 snakeSize db 3
 PointSize equ 2
 
-snakeBody dw 1D0Dh, 1C0Dh, 1B0Dh, snakeMaxSize-2 dup(0000h)
+snakeBody dw 1D0Dh, 1C0Dh, 1B0Dh, snakeMaxSize-2 dup(0000h)   
+                                                           
+brickWakkSize equ 9                                                           
+
+brickWall1 dw 0303h,  0302h, 0301h,  0300h,  02FFh,  0203h,  0103h,  0003h,  0FF03h  
+brickWall2 dw 0103h,  0003h, 0FF03h, 0FE03h, 0FD03h, 0FD02h, 0FD01h, 0FD00h, 0FCFFh
+brickWall3 dw 01FEh,  00FEh, 0FFFEh, 0FEFEh, 0FDFEh, 0FD01h, 0FD00h, 0FCFFh, 0FCFEh 
+brickWall4 dw 01FEh,  00FEh, 0FFFEh, 0FEFEh, 002FEh, 00401h, 00400h, 003FFh, 003FEh                                                                                
+            
+brickWallTemplate dw brickWakkSize dup(0)
+
+brickWallTrue dw brickWakkSize dup(0)
 
 stopVal     equ 00h
 forwardVal  equ 01h
@@ -138,7 +149,9 @@ main:
 to_close:                   ;
 	call printBanner        ;
 	mov ah,7h               ; 7h - консольный ввод без эха (ожидаем нажатия клавиши для выхода из приложения)
-    int 21h                 ;
+    int 21h                 ; 
+
+esc_exit:    
     
 	clearScreen             ;
                             ;
@@ -194,7 +207,52 @@ loopPrintBanner:                      ;
     std                               ;
 	pop es                            ;
 	ret                               ;
-ENDP                             
+ENDP      
+
+drawBrickWall PROC 
+ push cx
+ push bx
+ mov cx, brickWakkSize
+             
+ mov si, offset brickWallTrue            
+ loopBrickWall:              ; Цикл, в котором мы выводим тело змейки
+	mov bx, [si]            ; Загружаем в si очередной символ тела змейки
+	add si, PointSize       ; Добавляем к si PointSize, т.е. 2, т.к. каждая точка занимает 2 байта (цвет + символ)
+	
+	;get pos as (bh + (bl * xSize))*oneMemoBlock
+	call CalcOffsetByPoint  ; Получаем смещение выводимого символа в видеобуффере
+                            ;
+	mov di, bx              ; загружаем в di позицию
+                            ;
+	mov ax, BWallSymbol     ; Загружаем в ax выводимый символ
+	stosw                   ; Выводим
+	loop loopBrickWall    
+ pop bx	
+ pop cx
+ ret
+ENDP  
+
+destroyWall PROC
+ push cx
+ mov cx, brickWakkSize
+             
+ mov si, offset brickWallTrue            
+ loopDestroyWall:              ; Цикл, в котором мы выводим тело змейки
+	mov bx, [si]            ; Загружаем в si очередной символ тела змейки
+	add si, PointSize       ; Добавляем к si PointSize, т.е. 2, т.к. каждая точка занимает 2 байта (цвет + символ)
+	
+	;get pos as (bh + (bl * xSize))*oneMemoBlock
+	call CalcOffsetByPoint  ; Получаем смещение выводимого символа в видеобуффере
+                            ;
+	mov di, bx              ; загружаем в di позицию
+                            ;
+	mov ax, space           ; Загружаем в ax выводимый символ
+	stosw                   ; Выводим
+	loop loopDestroyWall    
+	
+ pop cx
+ ret   
+ENDP    
                             ;
 initAllScreen PROC          ;
 	mov si, offset screen   ; В si загружаем 
@@ -223,7 +281,6 @@ loopInitSnake:              ; Цикл, в котором мы выводим тело змейки
 	loop loopInitSnake      ;
                             ;
 	call GenerateRandomApple; Генерируем яблоко в случайных координатах  
-	call GenerateRandomWall
                             ;
 	ret                     ;
 ENDP                        ;
@@ -324,7 +381,7 @@ skipJmp2:                        ;
 	cmp ah, KExit		         ; Если была нажата кнопка выхода
 	jne skipJmp                  ; Иначе skipJmp
                                  ;
-	jmp far ptr endLoop          ; Заканчиваем игру, прыгая в endLoop
+	jmp far ptr esc_exit         ; Заканчиваем игру, прыгая в endLoop
                                  ;
 skipJmp:                         ;
 	cmp ah, KMoveLeft	         ; Если была нажата кнопка "влево"
@@ -457,10 +514,11 @@ checkSymbolAgain:                ;
                                  ;
 	jmp GoNextIteration          ;
                                  ;
-AppleIsNext:                     ;
+AppleIsNext:                     ;  
+    call destroyWall
 	call incSnake                ; Увеличиваем длину змейки
 	call GenerateRandomApple     ; Генерируем новое яблоко 
-	call GenerateRandomWall
+	;call GenerateRandomWall
 	call incScore                ; Увеличиваем счет
 	jmp GoNextIteration          ; Переходим к следующей итерации
 SnakeIsNext:                     ;
@@ -507,7 +565,7 @@ endLoop:                         ;
 	pop bx                       ;
 	pop ax                       ;
 	ret                          ;
-ENDP                             ;
+ENDP                               ;
                                  ;
 Sleep PROC                       ;
 	push ax                      ;
@@ -539,6 +597,56 @@ GenerateRandomApple PROC  ;
 	push dx               ;
 	push es               ;
 	                      ;
+	mov ah, 2Ch           ; Считываем текущее время
+	int 21h               ; ch - час, cl - минуты, dh - секунды, dl - мсек
+	
+	mov al, dl                     
+    mul dh                   ; Теперь в ax число для рандома
+	             
+	xor dx, dx             
+	             
+	mov cx, 04h
+	div cx
+	mov bh, dl
+	
+	cmp bh, 0
+	jne rnd1  
+	mov si, offset brickWall1                      
+	jmp writeToTemplate
+	
+	rnd1:
+	
+	cmp bh, 1
+	jne rnd2  
+	mov si, offset brickWall2                      
+	jmp writeToTemplate
+	
+	rnd2:
+	
+	cmp bh, 2
+	jne rnd3  
+	mov si, offset brickWall3                      
+	jmp writeToTemplate
+	
+	rnd3:                    
+	
+	mov si, offset brickWall4                      
+	jmp writeToTemplate  
+	            
+	writeToTemplate:
+	mov di, offset brickWallTemplate
+	mov cx, brickWakkSize
+	
+	toTemplate:
+	  push ax
+	  mov ax, [si]
+	  mov [di],ax
+	  pop ax
+	  
+	  add di, PointSize
+	  add si, PointSize
+	loop toTemplate                    
+	                      
 loop_random:              ;
 	mov ah, 2Ch           ; Считываем текущее время
 	int 21h               ; ch - час, cl - минуты, dh - секунды, dl - мсек
@@ -557,62 +665,59 @@ loop_random:              ;
 	div cx                ; Аналогично получаем y координату
 	add dx, 2			  ;
 	mov bl, dl 			  ; Теперь в bx находится координата яблока
-                          ;
+                          ;               
+    push bx                      
 	call CalcOffsetByPoint; Расситываем смещение
 	mov es, videoStart    ; Загружаем в es начало видеобуффера
 	mov ax, es:[bx]       ; В ax загружаем символ, который расположен по координатам, в которых мы хотим расположить яблоко
+    pop bx       
                           ;
 	cmp ax, space         ; Сравниваем их с пробелом(т.е. пустой клеткой). 
-	jne loop_random		  ; Если в клетке что-то есть - генерируем новые координаты
-                          ;
-	mov ax, appleSymbol   ; Загружаем в ax символ яблока
-	mov es:[bx], ax       ; Выводим символ яблока
-                          ;
-	pop es                ;
-	pop dx                ;
-	pop cx                ; Восстанавливаем регистры
-	pop bx                ;
-	pop ax                ;
-	ret                   ;
-ENDP 
+	jne loop_random		  ; Если в клетке что-то есть - генерируем новые координаты   
+	                                      
+    mov cx, brickWakkSize             
+    mov si, offset brickWallTemplate            
+    loopRandomWall:            
+        push bx                 ; Цикл, в котором мы выводим тело змейки
+	    add bx, [si]            ; Загружаем в si очередной символ тела змейки 
+        
+        push bx                      
+	    call CalcOffsetByPoint; Расситываем смещение
+	    mov es, videoStart    ; Загружаем в es начало видеобуффера
+	    mov ax, es:[bx]       ; В ax загружаем символ, который расположен по координатам, в которых мы хотим расположить яблоко
+        pop bx 
+        
+        pop bx
+	    
+	    cmp ax, space  
 
-GenerateRandomWall PROC   ;
-	push ax               ;
-	push bx               ;
-	push cx               ; Сохраняем значения регистров
-	push dx               ;
-	push es               ;
-	                      ;
-loop_random_wall:              ;
-	mov ah, 2Ch           ; Считываем текущее время
-	int 21h               ; ch - час, cl - минуты, dh - секунды, dl - мсек
-                          ;
-	mov al, dl            ; Получаем случайное число
-	mul dh 				  ; Теперь в ax число для рандома
-                          ;
-	xor dx, dx			  ; Обнуляем dx
-	mov cx, xField        ; В cx загружаем ширину поля
-	div cx				  ; Получаем номер строки яблока
-	add dx, 2			  ; Добавляем смещение от начала оси
-	mov bh, dl 		      ; Сохраняем координату x
-                          ;
-	xor dx, dx            ;
-	mov cx, yField        ;
-	div cx                ; Аналогично получаем y координату
-	add dx, 2			  ;
-	mov bl, dl 			  ; Теперь в bx находится координата яблока
-     
-    loop_check_wall:                      ;
+	    jne loop_random
+	              
+	    add si, PointSize       ; Добавляем к si PointSize, т.е. 2, т.к. каждая точка занимает 2 байта (цвет + символ)
+	loop loopRandomWall
+	
+    mov cx, brickWakkSize            
+    mov si, offset brickWallTemplate
+    mov di, offset brickWallTrue
+	loopCreateWall:            
+        push ax                 ; Цикл, в котором мы выводим тело змейки
+	    mov ax, [si]            ; Загружаем в si очередной символ тела змейки 
+	    add ax, bx 
+	    mov [di], ax                      
+	    
+	    add si, PointSize
+	    add di, PointSize
+	    pop ax                  ; Выводим
+	loop loopCreateWall    
+	
+	call drawBrickWall                                    
+	                
+	push bx                      
 	call CalcOffsetByPoint; Расситываем смещение
 	mov es, videoStart    ; Загружаем в es начало видеобуффера
-	mov ax, es:[bx]       ; В ax загружаем символ, который расположен по координатам, в которых мы хотим расположить яблоко
-                          ;
-	cmp ax, space         ; Сравниваем их с пробелом(т.е. пустой клеткой). 
-	jne loop_random_wall  ; Если в клетке что-то есть - генерируем новые координаты
-                   
-                          ;
-	mov ax, BWallSymbol   ; Загружаем в ax символ яблока
+	mov ax, appleSymbol; 
 	mov es:[bx], ax       ; Выводим символ яблока
+    pop bx                 
                           ;
 	pop es                ;
 	pop dx                ;
@@ -620,7 +725,7 @@ loop_random_wall:              ;
 	pop bx                ;
 	pop ax                ;
 	ret                   ;
-ENDP                      ;
+ENDP                     ;
 
 ;save tail of snake if no overloading
 incSnake PROC             ;
