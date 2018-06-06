@@ -1,8 +1,8 @@
 clearScreen MACRO          ;
-	push ax                ; Сохраняем значение ax
-	mov ax, 0003h          ; 00 - установить видеорежим, очистить экран. 03h - режим 80x25
-	int 10h                ; Вызов прерывания для исполнения команды
-	pop ax                 ; Восстанавливаем значение регистра ax
+	push ax                ; РЎРѕС…СЂР°РЅСЏРµРј Р·РЅР°С‡РµРЅРёРµ ax
+	mov ax, 0003h          ; 00 - СѓСЃС‚Р°РЅРѕРІРёС‚СЊ РІРёРґРµРѕСЂРµР¶РёРј, РѕС‡РёСЃС‚РёС‚СЊ СЌРєСЂР°РЅ. 03h - СЂРµР¶РёРј 80x25
+	int 10h                ; Р’С‹Р·РѕРІ РїСЂРµСЂС‹РІР°РЅРёСЏ РґР»СЏ РёСЃРїРѕР»РЅРµРЅРёСЏ РєРѕРјР°РЅРґС‹
+	pop ax                 ; Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµРј Р·РЅР°С‡РµРЅРёРµ СЂРµРіРёСЃС‚СЂР° ax
 ENDM                       ;
 ;end macro help
 
@@ -21,37 +21,34 @@ KMoveLeft   equ 1Eh	         ; A key
 KMoveRight  equ 20h	         ; D key
 KExit       equ 01h          ; ESC key
                              ;
-xSize       equ 80           ; Ширина консоли
-ySize       equ 25           ; Высота консоли
-xField      equ 50           ; Ширина поля
-yField      equ 21           ; Высота поля
-oneMemoBlock equ 2           ; Размер одной "клетки" консоли
-scoreSize equ 4              ; Длина блока счета
+xSize       equ 80           ; РЁРёСЂРёРЅР° РєРѕРЅСЃРѕР»Рё
+ySize       equ 25           ; Р’С‹СЃРѕС‚Р° РєРѕРЅСЃРѕР»Рё
+xField      equ 50           ; РЁРёСЂРёРЅР° РїРѕР»СЏ
+yField      equ 21           ; Р’С‹СЃРѕС‚Р° РїРѕР»СЏ
+oneMemoBlock equ 2           ; Р Р°Р·РјРµСЂ РѕРґРЅРѕР№ "РєР»РµС‚РєРё" РєРѕРЅСЃРѕР»Рё
+scoreSize equ 4              ; Р”Р»РёРЅР° Р±Р»РѕРєР° СЃС‡РµС‚Р°
                              ;
-videoStart   dw 0B800h       ; Смещение видеобуффера
+videoStart   dw 0B800h       ; РЎРјРµС‰РµРЅРёРµ РІРёРґРµРѕР±СѓС„С„РµСЂР°
 dataStart    dw 0000h        ;
 timeStart    dw 0040h        ;
 timePosition dw 006Ch        ;
                              ;
-space equ 0020h              ; Пустой блок с черным фоном
-snakeBodySymbol    equ 0A40h ; Символ тела змейки
-appleSymbol        equ 0B0Fh ; Символ яблока
-VWallSymbol        equ 0FBAh ; Символ вертикальной стены
-HWallSymbol        equ 0FCDh ; Символ горизонтальной стены  
+space equ 0020h              ; РџСѓСЃС‚РѕР№ Р±Р»РѕРє СЃ С‡РµСЂРЅС‹Рј С„РѕРЅРѕРј
+snakeBodySymbol    equ 0A40h ; РЎРёРјРІРѕР» С‚РµР»Р° Р·РјРµР№РєРё
+appleSymbol        equ 0B0Fh ; РЎРёРјРІРѕР» СЏР±Р»РѕРєР°
+VWallSymbol        equ 0FBAh ; РЎРёРјРІРѕР» РІРµСЂС‚РёРєР°Р»СЊРЅРѕР№ СЃС‚РµРЅС‹
+HWallSymbol        equ 0FCDh ; РЎРёРјРІРѕР» РіРѕСЂРёР·РѕРЅС‚Р°Р»СЊРЅРѕР№ СЃС‚РµРЅС‹  
 BWallSymbol        equ 4020h ;
-VWallSpecialSymbol equ 0FCCh ; Символ перекрещивания стен
-
-RedVWallSymbol     equ 04FBAh
-RedHWallSymbol     equ 04FCDh
+VWallSpecialSymbol equ 0FCCh ; РЎРёРјРІРѕР» РїРµСЂРµРєСЂРµС‰РёРІР°РЅРёСЏ СЃС‚РµРЅ
 
 fieldSpacingBad equ space, VWallSymbol, xField dup(space)
 fieldSpacing equ fieldSpacingBad, VWallSymbol
-rbSym equ 077DCh	         ; Белый блок с белым фоном
-rbSpc equ 04F20h             ; Пробел с красным фоном и белым цветом символов
-ylSym equ 06FDCh	         ; Белый блок с желтым фоном 
-ylSpc equ 06F20h	         ; Пробел с желтым фоном 
-grSym equ 02FDBh	         ; Белый блок с зеленым фоном 
-grSpc equ 02F20h	         ; Пустой блок с белым фоном
+rbSym equ 077DCh	         ; Р‘РµР»С‹Р№ Р±Р»РѕРє СЃ Р±РµР»С‹Рј С„РѕРЅРѕРј
+rbSpc equ 04F20h             ; РџСЂРѕР±РµР» СЃ РєСЂР°СЃРЅС‹Рј С„РѕРЅРѕРј Рё Р±РµР»С‹Рј С†РІРµС‚РѕРј СЃРёРјРІРѕР»РѕРІ
+ylSym equ 06FDCh	         ; Р‘РµР»С‹Р№ Р±Р»РѕРє СЃ Р¶РµР»С‚С‹Рј С„РѕРЅРѕРј 
+ylSpc equ 06F20h	         ; РџСЂРѕР±РµР» СЃ Р¶РµР»С‚С‹Рј С„РѕРЅРѕРј 
+grSym equ 02FDBh	         ; Р‘РµР»С‹Р№ Р±Р»РѕРє СЃ Р·РµР»РµРЅС‹Рј С„РѕРЅРѕРј 
+grSpc equ 02F20h	         ; РџСѓСЃС‚РѕР№ Р±Р»РѕРє СЃ Р±РµР»С‹Рј С„РѕРЅРѕРј
 
 screen	dw xSize dup(space)
 		dw space, 0FC9h, xField dup(HWallSymbol), 0FCBh, xSize - xField - 5 dup(HWallSymbol), 0FBBh, space
@@ -86,20 +83,23 @@ thirdF	dw fieldSpacing, xSize - xField - 5 dup(grSpc), VWallSymbol, space
 ;**********************************************************************************************************************                           
 widthOfBanner   equ 40     ; 
 allWidth        equ 80     ; 
-red             equ 4020h  ;
-white           equ 7020h  ; 
+black             equ 0020h  ;
+white           equ 4020h  ; 
 black           equ 0020h  ;
 
-wakeUpText 	dw 04FC9h, widthOfBanner-2 dup(RedHWallSymbol), 4FBBh 
-            dw RedVWallSymbol, widthOfBanner-2 dup(red), RedVWallSymbol
-			dw RedVWallSymbol, 4 dup(red), white, 5 dup(red), white, 2 dup(red), 2 dup(white), red, 4 dup(white), red, 3 dup(white), red, 3 dup(white), red, 3 dup(white), 6 dup(red), RedVWallSymbol
-			dw RedVWallSymbol, 4 dup(red), white, 5 dup(red), white, red, white, red, white, red,white, red, red, red, red, red, white, 2 dup(red), white, 2 dup(red), red, white, red, red, white, 5 dup(red), RedVWallSymbol
-			dw RedVWallSymbol, 5 dup(red), 3 dup(white, red), red, 3 dup(white), red, 4 dup(white), 2 dup(red), white, 2 dup(red), 2 dup(white), 2 dup(red), white, 2 dup(red), white, 5 dup(red), RedVWallSymbol
-			dw RedVWallSymbol, 5 dup(red), 3 dup(white, red), red, white, red, white, 4 dup(red), white, 2 dup(red), white, 2 dup(red), white, 2 dup(red), red, white, 2 dup(red), white, 5 dup(red), RedVWallSymbol
-			dw RedVWallSymbol, 6 dup(red), 2 dup(white, red), 2 dup(red), white, red, white, red, 4 dup(white), 2 dup(red), white, 2 dup(red), 3 dup(white), red, 3 dup(white), 6 dup(red), RedVWallSymbol 
-			dw RedVWallSymbol, widthOfBanner-2 dup(red), RedVWallSymbol
-			dw RedVWallSymbol, 7 dup(red) ,0CF50h, 0CF72h, 0CF65h, 0CF73h, 0CF73h, 0CF00h, 0CF61h, 0CF6Eh, 0CF79h, 0CF00h, 0CF6Bh, 0CF65h, 0CF79h, 0CF00h, 0CF74h, 0CF6Fh, 0CF00h, 0CF65h, 0CF78h, 0CF69h, 0CF74h,  10 dup(red), RedVWallSymbol
-			dw 4FC8h, widthOfBanner-2 dup(RedHWallSymbol), 4FBCh		
+blackVWallSymbol     equ 00FBAh
+blackHWallSymbol     equ 00FCDh
+
+wastedBanner 	dw 00FC9h, widthOfBanner-2 dup(blackHWallSymbol), 0FBBh 
+            dw blackVWallSymbol, widthOfBanner-2 dup(black), blackVWallSymbol
+			dw blackVWallSymbol, 4 dup(black), white, 5 dup(black), white, 2 dup(black), 2 dup(white), black, 4 dup(white), black, 3 dup(white), black, 3 dup(white), black, 3 dup(white), 6 dup(black), blackVWallSymbol
+			dw blackVWallSymbol, 4 dup(black), white, 5 dup(black), white, black, white, black, white, black,white, black, black, black, black, black, white, 2 dup(black), white, 2 dup(black), black, white, black, black, white, 5 dup(black), blackVWallSymbol
+			dw blackVWallSymbol, 5 dup(black), 3 dup(white, black), black, 3 dup(white), black, 4 dup(white), 2 dup(black), white, 2 dup(black), 2 dup(white), 2 dup(black), white, 2 dup(black), white, 5 dup(black), blackVWallSymbol
+			dw blackVWallSymbol, 5 dup(black), 3 dup(white, black), black, white, black, white, 4 dup(black), white, 2 dup(black), white, 2 dup(black), white, 2 dup(black), black, white, 2 dup(black), white, 5 dup(black), blackVWallSymbol
+			dw blackVWallSymbol, 6 dup(black), 2 dup(white, black), 2 dup(black), white, black, white, black, 4 dup(white), 2 dup(black), white, 2 dup(black), 3 dup(white), black, 3 dup(white), 6 dup(black), blackVWallSymbol 
+			dw blackVWallSymbol, widthOfBanner-2 dup(black), blackVWallSymbol
+			dw blackVWallSymbol, 7 dup(black) ,08F50h, 08F72h, 08F65h, 08F73h, 08F73h, 08F00h, 08F61h, 08F6Eh, 08F79h, 08F00h, 08F6Bh, 08F65h, 08F79h, 08F00h, 08F74h, 08F6Fh, 08F00h, 08F65h, 08F78h, 08F69h, 08F74h,  10 dup(black), blackVWallSymbol
+			dw 0FC8h, widthOfBanner-2 dup(blackHWallSymbol), 0FBCh		
 
 snakeMaxSize equ 30
 snakeSize db 3
@@ -107,16 +107,16 @@ PointSize equ 2
 
 snakeBody dw 1D0Dh, 1C0Dh, 1B0Dh, snakeMaxSize-2 dup(0000h)   
                                                            
-brickWakkSize equ 9                                                           
+brickWallSize equ 9                                                           
 
 brickWall1 dw 0303h,  0302h, 0301h,  0300h,  02FFh,  0203h,  0103h,  0003h,  0FF03h  
 brickWall2 dw 0103h,  0003h, 0FF03h, 0FE03h, 0FD03h, 0FD02h, 0FD01h, 0FD00h, 0FCFFh
 brickWall3 dw 01FEh,  00FEh, 0FFFEh, 0FEFEh, 0FDFEh, 0FD01h, 0FD00h, 0FCFFh, 0FCFEh 
 brickWall4 dw 01FEh,  00FEh, 0FFFEh, 0FEFEh, 002FEh, 00401h, 00400h, 003FFh, 003FEh                                                                                
             
-brickWallTemplate dw brickWakkSize dup(0)
+brickWallTemplate dw brickWallSize dup(0)
 
-brickWallTrue dw brickWakkSize dup(0)
+brickWallTrue dw brickWallSize dup(0)
 
 stopVal     equ 00h
 forwardVal  equ 01h
@@ -128,27 +128,27 @@ Bmovedown db 00h
 minWaitTime equ 1
 maxWaitTime equ 9
 waitTime    dw maxWaitTime
-deltaTime   equ 2
+deltaTime   equ 1
 
 .code
 
 main:
 	mov ax, @data	        ;
 	mov ds, ax              ;
-	mov dataStart, ax       ; Загружаем начальные данные
-	mov ax, videoStart      ; Загружаем в ax код начала вывода в видеобуффер
-	mov es, ax              ; Загружаем ax в es
-	xor ax, ax              ; Обнуляем ax
+	mov dataStart, ax       ; Р—Р°РіСЂСѓР¶Р°РµРј РЅР°С‡Р°Р»СЊРЅС‹Рµ РґР°РЅРЅС‹Рµ
+	mov ax, videoStart      ; Р—Р°РіСЂСѓР¶Р°РµРј РІ ax РєРѕРґ РЅР°С‡Р°Р»Р° РІС‹РІРѕРґР° РІ РІРёРґРµРѕР±СѓС„С„РµСЂ
+	mov es, ax              ; Р—Р°РіСЂСѓР¶Р°РµРј ax РІ es
+	xor ax, ax              ; РћР±РЅСѓР»СЏРµРј ax
                             ;
-	clearScreen             ; Очищаем консоль
+	clearScreen             ; РћС‡РёС‰Р°РµРј РєРѕРЅСЃРѕР»СЊ
                             ;
-	call initAllScreen      ; Инициализируем экран
+	call initAllScreen      ; РРЅРёС†РёР°Р»РёР·РёСЂСѓРµРј СЌРєСЂР°РЅ
                             ;
-	call mainGame           ; Переходим в основной цикл игры
+	call mainGame           ; РџРµСЂРµС…РѕРґРёРј РІ РѕСЃРЅРѕРІРЅРѕР№ С†РёРєР» РёРіСЂС‹
                             ;
 to_close:                   ;
 	call printBanner        ;
-	mov ah,7h               ; 7h - консольный ввод без эха (ожидаем нажатия клавиши для выхода из приложения)
+	mov ah,7h               ; 7h - РєРѕРЅСЃРѕР»СЊРЅС‹Р№ РІРІРѕРґ Р±РµР· СЌС…Р° (РѕР¶РёРґР°РµРј РЅР°Р¶Р°С‚РёСЏ РєР»Р°РІРёС€Рё РґР»СЏ РІС‹С…РѕРґР° РёР· РїСЂРёР»РѕР¶РµРЅРёСЏ)
     int 21h                 ; 
 
 esc_exit:    
@@ -158,28 +158,27 @@ esc_exit:
 	mov ah, 4ch             ;
 	int 21h                 ;
                             ;
-;more macro help            ;
                             ;
-;ZF = 1 - Буффер пуст       ;
+;ZF = 1 - Р‘СѓС„С„РµСЂ РїСѓСЃС‚       ;
 ;AH = scan-code             ;
-CheckBuffer MACRO           ; Проверяем - был ли введен символ с клавиатуры
+CheckBuffer MACRO           ; РџСЂРѕРІРµСЂСЏРµРј - Р±С‹Р» Р»Рё РІРІРµРґРµРЅ СЃРёРјРІРѕР» СЃ РєР»Р°РІРёР°С‚СѓСЂС‹
 	mov ah, 01h             ;   
 	int 16h                 ;
 ENDM                        ;
                             ;
-ReadFromBuffer MACRO        ; Считываем нажатую клавишу
+ReadFromBuffer MACRO        ; РЎС‡РёС‚С‹РІР°РµРј РЅР°Р¶Р°С‚СѓСЋ РєР»Р°РІРёС€Сѓ
 	mov ah, 00h             ;
 	int 16h                 ;
 ENDM                        ;
                             ;
-;result in cx:dx            ;
+;Р РµР·СѓР»СЊС‚Р°С‚ РІ cx:dx          ;
 GetTimerValue MACRO         ;
-	push ax                 ; Сохраняем значения регистра ax
+	push ax                 ; РЎРѕС…СЂР°РЅСЏРµРј Р·РЅР°С‡РµРЅРёСЏ СЂРµРіРёСЃС‚СЂР° ax
                             ;
-	mov ax, 00h             ; Получаем значение времени
+	mov ax, 00h             ; РџРѕР»СѓС‡Р°РµРј Р·РЅР°С‡РµРЅРёРµ РІСЂРµРјРµРЅРё
 	int 1Ah                 ;
                             ;
-	pop ax                  ; Восстанавливаем значение регистра ax
+	pop ax                  ; Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµРј Р·РЅР°С‡РµРЅРёРµ СЂРµРіРёСЃС‚СЂР° ax
 ENDM                        ;
                             ;  
                             
@@ -190,8 +189,8 @@ printBanner PROC
 	pop es                            ; ES=0B800h
                                       ;
 	mov di, 7*allWidth*2 + (allWidth - widthOfBanner) ;
-	mov si, offset wakeUpText         ;
-	mov cx, 10                         ;
+	mov si, offset wastedBanner       ;
+	mov cx, 10                        ;
 	cld                               ; 
 loopPrintBanner:                      ;
                                       ;
@@ -212,20 +211,20 @@ ENDP
 drawBrickWall PROC 
  push cx
  push bx
- mov cx, brickWakkSize
+ mov cx, brickWallSize
              
  mov si, offset brickWallTrue            
- loopBrickWall:              ; Цикл, в котором мы выводим тело змейки
-	mov bx, [si]            ; Загружаем в si очередной символ тела змейки
-	add si, PointSize       ; Добавляем к si PointSize, т.е. 2, т.к. каждая точка занимает 2 байта (цвет + символ)
+ loopBrickWall:              
+	mov bx, [si]            ; Р—Р°РіСЂСѓР¶Р°РµРј РІ si РѕС‡РµСЂРµРґРЅРѕР№ СЃРёРјРІРѕР» 
+	add si, PointSize       ; 
 	
-	;get pos as (bh + (bl * xSize))*oneMemoBlock
-	call CalcOffsetByPoint  ; Получаем смещение выводимого символа в видеобуффере
+	                        ; РџРѕР»СѓС‡Р°РµРј РїРѕР·РёС†РёСЋ РІ РІРёРґРµРѕР±СѓС„С„РµСЂРµ(bh + (bl * xSize))*oneMemoBlock
+	call CalcOffsetByPoint  ; РџРѕР»СѓС‡Р°РµРј СЃРјРµС‰РµРЅРёРµ РІС‹РІРѕРґРёРјРѕРіРѕ СЃРёРјРІРѕР»Р° РІ РІРёРґРµРѕР±СѓС„С„РµСЂРµ
                             ;
-	mov di, bx              ; загружаем в di позицию
+	mov di, bx              ; Р·Р°РіСЂСѓР¶Р°РµРј РІ di РїРѕР·РёС†РёСЋ
                             ;
-	mov ax, BWallSymbol     ; Загружаем в ax выводимый символ
-	stosw                   ; Выводим
+	mov ax, BWallSymbol     ; Р—Р°РіСЂСѓР¶Р°РµРј РІ ax РІС‹РІРѕРґРёРјС‹Р№ СЃРёРјРІРѕР»
+	stosw                   ; Р’С‹РІРѕРґРёРј
 	loop loopBrickWall    
  pop bx	
  pop cx
@@ -234,20 +233,19 @@ ENDP
 
 destroyWall PROC
  push cx
- mov cx, brickWakkSize
+ mov cx, brickWallSize
              
  mov si, offset brickWallTrue            
- loopDestroyWall:              ; Цикл, в котором мы выводим тело змейки
-	mov bx, [si]            ; Загружаем в si очередной символ тела змейки
-	add si, PointSize       ; Добавляем к si PointSize, т.е. 2, т.к. каждая точка занимает 2 байта (цвет + символ)
+ loopDestroyWall:           
+	mov bx, [si]            ; Р—Р°РіСЂСѓР¶Р°РµРј РІ si РѕС‡РµСЂРµРґРЅРѕР№ СЃРёРјРІРѕР»
+	add si, PointSize       ; 
 	
-	;get pos as (bh + (bl * xSize))*oneMemoBlock
-	call CalcOffsetByPoint  ; Получаем смещение выводимого символа в видеобуффере
+	call CalcOffsetByPoint  ; РџРѕР»СѓС‡Р°РµРј СЃРјРµС‰РµРЅРёРµ РІС‹РІРѕРґРёРјРѕРіРѕ СЃРёРјРІРѕР»Р° РІ РІРёРґРµРѕР±СѓС„С„РµСЂРµ
                             ;
-	mov di, bx              ; загружаем в di позицию
+	mov di, bx              ; Р·Р°РіСЂСѓР¶Р°РµРј РІ di РїРѕР·РёС†РёСЋ
                             ;
-	mov ax, space           ; Загружаем в ax выводимый символ
-	stosw                   ; Выводим
+	mov ax, space           ; Р—Р°РіСЂСѓР¶Р°РµРј РІ ax РІС‹РІРѕРґРёРјС‹Р№ СЃРёРјРІРѕР»
+	stosw                   ; Р’С‹РІРѕРґРёРј
 	loop loopDestroyWall    
 	
  pop cx
@@ -255,107 +253,106 @@ destroyWall PROC
 ENDP    
                             ;
 initAllScreen PROC          ;
-	mov si, offset screen   ; В si загружаем 
-	xor di, di              ; Обнуляем di
-                            ; Теперь ds:si указывает на символы, которые мы будет выводить
-                            ; а es:di на di'ый символ консоли 
-	mov cx, xSize*ySize     ; Загружаем в cx кол-во символов в консоли, т.е. 80x25                                    
-	rep movsw               ; Переписываем последовательно все cx символов из ds:si в консоль es:di 
+	mov si, offset screen   ; Р’ si Р·Р°РіСЂСѓР¶Р°РµРј 
+	xor di, di              ; РћР±РЅСѓР»СЏРµРј di
+                            ; РўРµРїРµСЂСЊ ds:si СѓРєР°Р·С‹РІР°РµС‚ РЅР° СЃРёРјРІРѕР»С‹, РєРѕС‚РѕСЂС‹Рµ РјС‹ Р±СѓРґРµРј РІС‹РІРѕРґРёС‚СЊ
+                            ; Р° es:di РЅР° di'С‹Р№ СЃРёРјРІРѕР» РєРѕРЅСЃРѕР»Рё 
+	mov cx, xSize*ySize     ; Р—Р°РіСЂСѓР¶Р°РµРј РІ cx РєРѕР»-РІРѕ СЃРёРјРІРѕР»РѕРІ РІ РєРѕРЅСЃРѕР»Рё, С‚.Рµ. 80x25                                    
+	rep movsw               ; РџРµСЂРµРїРёСЃС‹РІР°РµРј РїРѕСЃР»РµРґРѕРІР°С‚РµР»СЊРЅРѕ РІСЃРµ cx СЃРёРјРІРѕР»РѕРІ РёР· ds:si РІ РєРѕРЅСЃРѕР»СЊ es:di 
                             ;
                             ;
-	xor ch, ch              ; Обнуляем ch
-	mov cl, snakeSize       ; Загружаем в cl размер змейки
-	mov si, offset snakeBody; В si загружаем смещения начала тела змейки
+	xor ch, ch              ; РћР±РЅСѓР»СЏРµРј ch
+	mov cl, snakeSize       ; Р—Р°РіСЂСѓР¶Р°РµРј РІ cl СЂР°Р·РјРµСЂ Р·РјРµР№РєРё
+	mov si, offset snakeBody; Р’ si Р·Р°РіСЂСѓР¶Р°РµРј СЃРјРµС‰РµРЅРёСЏ РЅР°С‡Р°Р»Р° С‚РµР»Р° Р·РјРµР№РєРё
                             ;
-loopInitSnake:              ; Цикл, в котором мы выводим тело змейки
-	mov bx, [si]            ; Загружаем в si очередной символ тела змейки
-	add si, PointSize       ; Добавляем к si PointSize, т.е. 2, т.к. каждая точка занимает 2 байта (цвет + символ)
+loopInitSnake:              ; Р¦РёРєР», РІ РєРѕС‚РѕСЂРѕРј РјС‹ РІС‹РІРѕРґРёРј С‚РµР»Рѕ Р·РјРµР№РєРё
+	mov bx, [si]            ; Р—Р°РіСЂСѓР¶Р°РµРј РІ si РѕС‡РµСЂРµРґРЅРѕР№ СЃРёРјРІРѕР» С‚РµР»Р° Р·РјРµР№РєРё
+	add si, PointSize       ; Р”РѕР±Р°РІР»СЏРµРј Рє si PointSize, С‚.Рµ. 2, С‚.Рє. РєР°Р¶РґР°СЏ С‚РѕС‡РєР° Р·Р°РЅРёРјР°РµС‚ 2 Р±Р°Р№С‚Р° (С†РІРµС‚ + СЃРёРјРІРѕР»)
 	
-	;get pos as (bh + (bl * xSize))*oneMemoBlock
-	call CalcOffsetByPoint  ; Получаем смещение выводимого символа в видеобуффере
+	call CalcOffsetByPoint  ; РџРѕР»СѓС‡Р°РµРј СЃРјРµС‰РµРЅРёРµ РІС‹РІРѕРґРёРјРѕРіРѕ СЃРёРјРІРѕР»Р° РІ РІРёРґРµРѕР±СѓС„С„РµСЂРµ
                             ;
-	mov di, bx              ; загружаем в di позицию
+	mov di, bx              ; Р·Р°РіСЂСѓР¶Р°РµРј РІ di РїРѕР·РёС†РёСЋ
                             ;
-	mov ax, snakeBodySymbol ; Загружаем в ax выводимый символ
-	stosw                   ; Выводим
+	mov ax, snakeBodySymbol ; Р—Р°РіСЂСѓР¶Р°РµРј РІ ax РІС‹РІРѕРґРёРјС‹Р№ СЃРёРјРІРѕР»
+	stosw                   ; Р’С‹РІРѕРґРёРј
 	loop loopInitSnake      ;
                             ;
-	call GenerateRandomApple; Генерируем яблоко в случайных координатах  
+	call GenerateRandomApple; Р“РµРЅРµСЂРёСЂСѓРµРј СЏР±Р»РѕРєРѕ РІ СЃР»СѓС‡Р°Р№РЅС‹С… РєРѕРѕСЂРґРёРЅР°С‚Р°С…  
                             ;
 	ret                     ;
 ENDP                        ;
 
-;get pos as (bh + (bl * xSize))*oneMemoBlock
-;input: point (x,y) in bx
-;output: offset in bx
+                            ;РџРѕР»СѓС‡Р°РµРј СЃРјРµС‰РµРЅРёРµ РІРёРґРµРѕР±СѓС„С„РµСЂР° РєР°Рє (bh + (bl * xSize))*oneMemoBlock
+                            ;input: РљРѕРѕСЂРґРёРЅР°С‚С‹ (x,y) РІ bx
+                            ;output: РЎРјРµС‰РµРЅРёРµ РІ bx
 CalcOffsetByPoint PROC      ;    
-	push ax                 ; Сохраняем значения регистров ax и dx
+	push ax                 ; РЎРѕС…СЂР°РЅСЏРµРј Р·РЅР°С‡РµРЅРёСЏ СЂРµРіРёСЃС‚СЂРѕРІ ax Рё dx
 	push dx                 ;
 	                        ;
-	xor ah, ah              ; Обнуляем ah
-	mov al, bl              ; Загружаем в al bl
-	mov dl, xSize           ; В dl загружаем xSize - размер строки
-	mul dl                  ; Умножаем al на dl
-	mov dl, bh              ; Загружаем в dl bh
-	xor dh, dh              ; Обнуляем dh
-	add ax, dx              ; Добавляем к ax dx
-	mov dx, oneMemoBlock	; Загружаем в dx oneMemoBlock - длину каждого блока
-	mul dx                  ; Умножаем на размер блока
-	mov bx, ax              ; Загружаем ax в bx
+	xor ah, ah              ; РћР±РЅСѓР»СЏРµРј ah
+	mov al, bl              ; Р—Р°РіСЂСѓР¶Р°РµРј РІ al bl
+	mov dl, xSize           ; Р’ dl Р·Р°РіСЂСѓР¶Р°РµРј xSize - СЂР°Р·РјРµСЂ СЃС‚СЂРѕРєРё
+	mul dl                  ; РЈРјРЅРѕР¶Р°РµРј al РЅР° dl
+	mov dl, bh              ; Р—Р°РіСЂСѓР¶Р°РµРј РІ dl bh
+	xor dh, dh              ; РћР±РЅСѓР»СЏРµРј dh
+	add ax, dx              ; Р”РѕР±Р°РІР»СЏРµРј Рє ax dx
+	mov dx, oneMemoBlock	; Р—Р°РіСЂСѓР¶Р°РµРј РІ dx oneMemoBlock - РґР»РёРЅСѓ РєР°Р¶РґРѕРіРѕ Р±Р»РѕРєР°
+	mul dx                  ; РЈРјРЅРѕР¶Р°РµРј РЅР° СЂР°Р·РјРµСЂ Р±Р»РѕРєР°
+	mov bx, ax              ; Р—Р°РіСЂСѓР¶Р°РµРј ax РІ bx
                             ;
-	pop dx                  ; Восстанавливаем значения регистров dx и ax
+	pop dx                  ; Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµРј Р·РЅР°С‡РµРЅРёСЏ СЂРµРіРёСЃС‚СЂРѕРІ dx Рё ax
 	pop ax                  ;
 	ret                     ;
 ENDP                        ;
 
-;Сдвигаем тело змейки в массиве
-;Удаляем старый последний элемент
-;Закрашиваем последний элемент
+;РЎРґРІРёРіР°РµРј С‚РµР»Рѕ Р·РјРµР№РєРё РІ РјР°СЃСЃРёРІРµ
+;РЈРґР°Р»СЏРµРј СЃС‚Р°СЂС‹Р№ РїРѕСЃР»РµРґРЅРёР№ СЌР»РµРјРµРЅС‚
+;Р—Р°РєСЂР°С€РёРІР°РµРј РїРѕСЃР»РµРґРЅРёР№ СЌР»РµРјРµРЅС‚
 MoveSnake PROC              ;
 	push ax                 ;
 	push bx                 ;
 	push cx                 ;
-	push si                 ; Сохраняем значения регистров
+	push si                 ; РЎРѕС…СЂР°РЅСЏРµРј Р·РЅР°С‡РµРЅРёСЏ СЂРµРіРёСЃС‚СЂРѕРІ
 	push di                 ;
 	push es                 ;
                             ;
-	mov al, snakeSize       ; В al загружаем длину змейки
-	xor ah, ah 		        ; Обнуляем ah
-	mov cx, ax 		        ; Загружаем в cx ax
-	mov bx, PointSize       ; Загружаем в bx размер точки на экране
-	mul bx			        ; Теперь в ax реальная позиция в памяти относительно начала массива
-	mov di, offset snakeBody; Загружаем в di смещение головы змейки
-	add di, ax 		        ; di - адрес следующего после последнего элемента массива
-	mov si, di              ; Загружаем di в si
-	sub si, PointSize 	    ; si - адрес последнего элемента массива
+	mov al, snakeSize       ; Р’ al Р·Р°РіСЂСѓР¶Р°РµРј РґР»РёРЅСѓ Р·РјРµР№РєРё
+	xor ah, ah 		        ; РћР±РЅСѓР»СЏРµРј ah
+	mov cx, ax 		        ; Р—Р°РіСЂСѓР¶Р°РµРј РІ cx ax
+	mov bx, PointSize       ; Р—Р°РіСЂСѓР¶Р°РµРј РІ bx СЂР°Р·РјРµСЂ С‚РѕС‡РєРё РЅР° СЌРєСЂР°РЅРµ
+	mul bx			        ; РўРµРїРµСЂСЊ РІ ax СЂРµР°Р»СЊРЅР°СЏ РїРѕР·РёС†РёСЏ РІ РїР°РјСЏС‚Рё РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ РЅР°С‡Р°Р»Р° РјР°СЃСЃРёРІР°
+	mov di, offset snakeBody; Р—Р°РіСЂСѓР¶Р°РµРј РІ di СЃРјРµС‰РµРЅРёРµ РіРѕР»РѕРІС‹ Р·РјРµР№РєРё
+	add di, ax 		        ; di - Р°РґСЂРµСЃ СЃР»РµРґСѓСЋС‰РµРіРѕ РїРѕСЃР»Рµ РїРѕСЃР»РµРґРЅРµРіРѕ СЌР»РµРјРµРЅС‚Р° РјР°СЃСЃРёРІР°
+	mov si, di              ; Р—Р°РіСЂСѓР¶Р°РµРј di РІ si
+	sub si, PointSize 	    ; si - Р°РґСЂРµСЃ РїРѕСЃР»РµРґРЅРµРіРѕ СЌР»РµРјРµРЅС‚Р° РјР°СЃСЃРёРІР°
                             ;
-	push di                 ; Сохраняем значение di
-	                        ; Удаляем конец змейки с экрана
-	mov es, videoStart      ; Загружаем в es смещение видеобуффера
-	mov bx, ds:[si]         ; Загружаем в bx последний элемент змейки
-	call CalcOffsetByPoint  ; Вычисляем ее позицию на экране
-	mov di, bx			    ; Заносим позицию, которую будем очищать в di
-	mov ax, space           ; Загружаем в ax пустую клетку
-	stosw                   ; Записываем (пересылаем содерджимое ax в es:di)
+	push di                 ; РЎРѕС…СЂР°РЅСЏРµРј Р·РЅР°С‡РµРЅРёРµ di
+	                        ; РЈРґР°Р»СЏРµРј РєРѕРЅРµС† Р·РјРµР№РєРё СЃ СЌРєСЂР°РЅР°
+	mov es, videoStart      ; Р—Р°РіСЂСѓР¶Р°РµРј РІ es СЃРјРµС‰РµРЅРёРµ РІРёРґРµРѕР±СѓС„С„РµСЂР°
+	mov bx, ds:[si]         ; Р—Р°РіСЂСѓР¶Р°РµРј РІ bx РїРѕСЃР»РµРґРЅРёР№ СЌР»РµРјРµРЅС‚ Р·РјРµР№РєРё
+	call CalcOffsetByPoint  ; Р’С‹С‡РёСЃР»СЏРµРј РµРµ РїРѕР·РёС†РёСЋ РЅР° СЌРєСЂР°РЅРµ
+	mov di, bx			    ; Р—Р°РЅРѕСЃРёРј РїРѕР·РёС†РёСЋ, РєРѕС‚РѕСЂСѓСЋ Р±СѓРґРµРј РѕС‡РёС‰Р°С‚СЊ РІ di
+	mov ax, space           ; Р—Р°РіСЂСѓР¶Р°РµРј РІ ax РїСѓСЃС‚СѓСЋ РєР»РµС‚РєСѓ
+	stosw                   ; Р—Р°РїРёСЃС‹РІР°РµРј (РїРµСЂРµСЃС‹Р»Р°РµРј СЃРѕРґРµСЂРґР¶РёРјРѕРµ ax РІ es:di)
                             ;
-	pop di                  ; Восстанавливаем di
+	pop di                  ; Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµРј di
                             ;
-	mov es, dataStart	    ; Для работы с данными (до этого es указывал на видеобуффер)
-	std				        ; Идем от конца к началу
-	rep movsw               ; Переписываем символы из ds:si в es:di (si - предпоследний элемент змейки, di - последний элемент)
-	                        ; Таким образом смещаем всю змейку на 1 шаг
+	mov es, dataStart	    ; Р”Р»СЏ СЂР°Р±РѕС‚С‹ СЃ РґР°РЅРЅС‹РјРё (РґРѕ СЌС‚РѕРіРѕ es СѓРєР°Р·С‹РІР°Р» РЅР° РІРёРґРµРѕР±СѓС„С„РµСЂ)
+	std				        ; РРґРµРј РѕС‚ РєРѕРЅС†Р° Рє РЅР°С‡Р°Р»Сѓ
+	rep movsw               ; РџРµСЂРµРїРёСЃС‹РІР°РµРј СЃРёРјРІРѕР»С‹ РёР· ds:si РІ es:di (si - РїСЂРµРґРїРѕСЃР»РµРґРЅРёР№ СЌР»РµРјРµРЅС‚ Р·РјРµР№РєРё, di - РїРѕСЃР»РµРґРЅРёР№ СЌР»РµРјРµРЅС‚)
+	                        ; РўР°РєРёРј РѕР±СЂР°Р·РѕРј СЃРјРµС‰Р°РµРј РІСЃСЋ Р·РјРµР№РєСѓ РЅР° 1 С€Р°Рі
                             ;
-	mov bx, snakeBody 	    ; Загружаем в bx позицию головы змейки
+	mov bx, snakeBody 	    ; Р—Р°РіСЂСѓР¶Р°РµРј РІ bx РїРѕР·РёС†РёСЋ РіРѕР»РѕРІС‹ Р·РјРµР№РєРё
                             ;
-	add bh, Bmoveright      ; Обновляем координаты головы
+	add bh, Bmoveright      ; РћР±РЅРѕРІР»СЏРµРј РєРѕРѕСЂРґРёРЅР°С‚С‹ РіРѕР»РѕРІС‹
 	add bl, Bmovedown	    ; 
-	mov snakeBody, bx	    ; сохраняем новую позицию головы
+	mov snakeBody, bx	    ; СЃРѕС…СЂР°РЅСЏРµРј РЅРѕРІСѓСЋ РїРѕР·РёС†РёСЋ РіРѕР»РѕРІС‹
 	                        ; 
-	                        ; теперь все тело в памяти сдвинуто                           ;
+	                        ; С‚РµРїРµСЂСЊ РІСЃРµ С‚РµР»Рѕ РІ РїР°РјСЏС‚Рё СЃРґРІРёРЅСѓС‚Рѕ                           ;
 	pop es                  ;
 	pop di                  ;
 	pop si                  ;
-	pop cx                  ; Восстанавливаем значения регистров
+	pop cx                  ; Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµРј Р·РЅР°С‡РµРЅРёСЏ СЂРµРіРёСЃС‚СЂРѕРІ
 	pop bx                  ;
 	pop ax                  ;
 	ret                     ;
@@ -365,35 +362,35 @@ mainGame PROC
 	push ax                      ;
 	push bx                      ;
 	push cx                      ;
-	push dx                      ; Сохраняем значения регистров
+	push dx                      ; РЎРѕС…СЂР°РЅСЏРµРј Р·РЅР°С‡РµРЅРёСЏ СЂРµРіРёСЃС‚СЂРѕРІ
 	push ds                      ;
 	push es                      ;
                                  ;
 checkAndMoveLoop:                ;
 	                             ;
-	CheckBuffer                  ; Проверяем - был ли введен символ
-	jnz skipJmp2                 ; Если да - skipJmp2
-	jmp far ptr noSymbolInBuff   ; Иначе noSymbolInBuff
+	CheckBuffer                  ; РџСЂРѕРІРµСЂСЏРµРј - Р±С‹Р» Р»Рё РІРІРµРґРµРЅ СЃРёРјРІРѕР»
+	jnz skipJmp2                 ; Р•СЃР»Рё РґР° - skipJmp2
+	jmp far ptr noSymbolInBuff   ; РРЅР°С‡Рµ noSymbolInBuff
                                  ;
 skipJmp2:                        ;
-	ReadFromBuffer               ; Считываем символ из буффера
+	ReadFromBuffer               ; РЎС‡РёС‚С‹РІР°РµРј СЃРёРјРІРѕР» РёР· Р±СѓС„С„РµСЂР°
                                  ;
-	cmp ah, KExit		         ; Если была нажата кнопка выхода
-	jne skipJmp                  ; Иначе skipJmp
+	cmp ah, KExit		         ; Р•СЃР»Рё Р±С‹Р»Р° РЅР°Р¶Р°С‚Р° РєРЅРѕРїРєР° РІС‹С…РѕРґР°
+	jne skipJmp                  ; РРЅР°С‡Рµ skipJmp
                                  ;
-	jmp far ptr esc_exit         ; Заканчиваем игру, прыгая в endLoop
+	jmp far ptr esc_exit         ; Р—Р°РєР°РЅС‡РёРІР°РµРј РёРіСЂСѓ, РїСЂС‹РіР°СЏ РІ endLoop
                                  ;
 skipJmp:                         ;
-	cmp ah, KMoveLeft	         ; Если была нажата кнопка "влево"
+	cmp ah, KMoveLeft	         ; Р•СЃР»Рё Р±С‹Р»Р° РЅР°Р¶Р°С‚Р° РєРЅРѕРїРєР° "РІР»РµРІРѕ"
 	je setMoveLeft               ;
                                  ;
-	cmp ah, KMoveRight	         ; Если была нажата кнопка "вправо"
+	cmp ah, KMoveRight	         ; Р•СЃР»Рё Р±С‹Р»Р° РЅР°Р¶Р°С‚Р° РєРЅРѕРїРєР° "РІРїСЂР°РІРѕ"
 	je setMoveRight              ;
                                  ;
-	cmp ah, KMoveUp		         ; Если была нажата кнопка "вверх"
+	cmp ah, KMoveUp		         ; Р•СЃР»Рё Р±С‹Р»Р° РЅР°Р¶Р°С‚Р° РєРЅРѕРїРєР° "РІРІРµСЂС…"
 	je setMoveUp                 ;
                                  ;
-	cmp ah, KMoveDown	         ; Если была нажата кнопка "вниз"
+	cmp ah, KMoveDown	         ; Р•СЃР»Рё Р±С‹Р»Р° РЅР°Р¶Р°С‚Р° РєРЅРѕРїРєР° "РІРЅРёР·"
 	je setMoveDown               ;
                                  ;
 	cmp ah, KUpSpeed		     ; move up key is pressed
@@ -405,60 +402,60 @@ skipJmp:                         ;
 	jmp noSymbolInBuff           ;
                                  ;
 setMoveLeft:                     ;  
-    mov al, Bmoveright           ; Проверка на попытку изменения направления на противоположное
+    mov al, Bmoveright           ; РџСЂРѕРІРµСЂРєР° РЅР° РїРѕРїС‹С‚РєСѓ РёР·РјРµРЅРµРЅРёСЏ РЅР°РїСЂР°РІР»РµРЅРёСЏ РЅР° РїСЂРѕС‚РёРІРѕРїРѕР»РѕР¶РЅРѕРµ
     cmp al, forwardVal           ;
     jne setMoveLeft_ok           ;
     jmp noSymbolInBuff           ;
                                  ;
     setMoveLeft_ok:              ;
                                  ;
-	mov Bmoveright, backwardVal  ; Направление вправо - отрицательное
-	mov Bmovedown,  stopVal      ; Направление вниз - нулевое
+	mov Bmoveright, backwardVal  ; РќР°РїСЂР°РІР»РµРЅРёРµ РІРїСЂР°РІРѕ - РѕС‚СЂРёС†Р°С‚РµР»СЊРЅРѕРµ
+	mov Bmovedown,  stopVal      ; РќР°РїСЂР°РІР»РµРЅРёРµ РІРЅРёР· - РЅСѓР»РµРІРѕРµ
 	jmp noSymbolInBuff           ;
                                  ;
 setMoveRight:                    ;  
-    mov al, Bmoveright           ; Проверка на попытку изменения направления на противоположное
+    mov al, Bmoveright           ; РџСЂРѕРІРµСЂРєР° РЅР° РїРѕРїС‹С‚РєСѓ РёР·РјРµРЅРµРЅРёСЏ РЅР°РїСЂР°РІР»РµРЅРёСЏ РЅР° РїСЂРѕС‚РёРІРѕРїРѕР»РѕР¶РЅРѕРµ
     cmp al, backwardVal          ;
     jne setMoveRight_ok          ;
     jmp noSymbolInBuff           ;
                                  ;
     setMoveRight_ok:             ;
                                  ;
-	mov Bmoveright, forwardVal   ; Направление вправо - положительное
-	mov Bmovedown, stopVal       ; Направление вправо - нулевое
+	mov Bmoveright, forwardVal   ; РќР°РїСЂР°РІР»РµРЅРёРµ РІРїСЂР°РІРѕ - РїРѕР»РѕР¶РёС‚РµР»СЊРЅРѕРµ
+	mov Bmovedown, stopVal       ; РќР°РїСЂР°РІР»РµРЅРёРµ РІРїСЂР°РІРѕ - РЅСѓР»РµРІРѕРµ
 	jmp noSymbolInBuff           ;
                                  ;
 setMoveUp:                       ; 
-    mov al, Bmovedown            ; Проверка на попытку изменения направления на противоположное
+    mov al, Bmovedown            ; РџСЂРѕРІРµСЂРєР° РЅР° РїРѕРїС‹С‚РєСѓ РёР·РјРµРЅРµРЅРёСЏ РЅР°РїСЂР°РІР»РµРЅРёСЏ РЅР° РїСЂРѕС‚РёРІРѕРїРѕР»РѕР¶РЅРѕРµ
     cmp al, forwardVal           ;
     jne setMoveUp_ok             ;
     jmp noSymbolInBuff           ;
                                  ;
     setMoveUp_ok:                ;
                                  ;
-	mov Bmoveright, stopVal      ; Направление вниз - отрицательное
+	mov Bmoveright, stopVal      ; РќР°РїСЂР°РІР»РµРЅРёРµ РІРЅРёР· - РѕС‚СЂРёС†Р°С‚РµР»СЊРЅРѕРµ
 	mov Bmovedown, backwardVal   ;
 	jmp noSymbolInBuff           ;
                                  ;
 setMoveDown:                     ; 
-    mov al, Bmovedown            ; Проверка на попытку изменения направления на противоположное
+    mov al, Bmovedown            ; РџСЂРѕРІРµСЂРєР° РЅР° РїРѕРїС‹С‚РєСѓ РёР·РјРµРЅРµРЅРёСЏ РЅР°РїСЂР°РІР»РµРЅРёСЏ РЅР° РїСЂРѕС‚РёРІРѕРїРѕР»РѕР¶РЅРѕРµ
     cmp al, backwardVal          ;
     jne setMoveDown_ok           ;
     jmp noSymbolInBuff           ;
                                  ;
     setMoveDown_ok:              ;
                                  ;
-	mov Bmoveright, stopVal      ; Направление вправо - нулевое
-	mov Bmovedown, forwardVal    ; Направление вниз - положительное
+	mov Bmoveright, stopVal      ; РќР°РїСЂР°РІР»РµРЅРёРµ РІРїСЂР°РІРѕ - РЅСѓР»РµРІРѕРµ
+	mov Bmovedown, forwardVal    ; РќР°РїСЂР°РІР»РµРЅРёРµ РІРЅРёР· - РїРѕР»РѕР¶РёС‚РµР»СЊРЅРѕРµ
 	jmp noSymbolInBuff           ;
                                  ;
 setSpeedUp:                      ;
-	mov ax, waitTime             ; Загружаем в ax значение задержки
-	cmp ax, minWaitTime          ; Сравниваем его с минимальным
-	je noSymbolInBuff			 ; Если равно минимальному - пропускаем 
+	mov ax, waitTime             ; Р—Р°РіСЂСѓР¶Р°РµРј РІ ax Р·РЅР°С‡РµРЅРёРµ Р·Р°РґРµСЂР¶РєРё
+	cmp ax, minWaitTime          ; РЎСЂР°РІРЅРёРІР°РµРј РµРіРѕ СЃ РјРёРЅРёРјР°Р»СЊРЅС‹Рј
+	je noSymbolInBuff			 ; Р•СЃР»Рё СЂР°РІРЅРѕ РјРёРЅРёРјР°Р»СЊРЅРѕРјСѓ - РїСЂРѕРїСѓСЃРєР°РµРј 
 	                             ;
-	sub ax, deltaTime            ; Уменьшаем время задержки
-	mov waitTime, ax 			 ; Обновляем значение задержки
+	sub ax, deltaTime            ; РЈРјРµРЅСЊС€Р°РµРј РІСЂРµРјСЏ Р·Р°РґРµСЂР¶РєРё
+	mov waitTime, ax 			 ; РћР±РЅРѕРІР»СЏРµРј Р·РЅР°С‡РµРЅРёРµ Р·Р°РґРµСЂР¶РєРё
                                  ;
 	mov es, videoStart           ;
 	mov di, offset speed - offset screen	;
@@ -485,28 +482,28 @@ setSpeedDown:                    ;
 	jmp noSymbolInBuff           ;
                                  ;
 noSymbolInBuff:                  ;
-	call MoveSnake               ; Передвигаем змейку на экране
+	call MoveSnake               ; РџРµСЂРµРґРІРёРіР°РµРј Р·РјРµР№РєСѓ РЅР° СЌРєСЂР°РЅРµ
                                  ;
-	mov bx, snakeBody 		     ; В помещаем в bx голову змеи
+	mov bx, snakeBody 		     ; Р’ РїРѕРјРµС‰Р°РµРј РІ bx РіРѕР»РѕРІСѓ Р·РјРµРё
 checkSymbolAgain:                ;
-	call CalcOffsetByPoint	     ; В bx теперь смещение ячейки консоли с новой головой змейки
+	call CalcOffsetByPoint	     ; Р’ bx С‚РµРїРµСЂСЊ СЃРјРµС‰РµРЅРёРµ СЏС‡РµР№РєРё РєРѕРЅСЃРѕР»Рё СЃ РЅРѕРІРѕР№ РіРѕР»РѕРІРѕР№ Р·РјРµР№РєРё
                                  ;
-	mov es, videoStart           ; Загружаем в es смещение видеобуффера
-	mov ax, es:[bx]		         ; Загружаем в ax символ куда должна стать змейка
+	mov es, videoStart           ; Р—Р°РіСЂСѓР¶Р°РµРј РІ es СЃРјРµС‰РµРЅРёРµ РІРёРґРµРѕР±СѓС„С„РµСЂР°
+	mov ax, es:[bx]		         ; Р—Р°РіСЂСѓР¶Р°РµРј РІ ax СЃРёРјРІРѕР» РєСѓРґР° РґРѕР»Р¶РЅР° СЃС‚Р°С‚СЊ Р·РјРµР№РєР°
                                  ;
-	cmp ax, appleSymbol          ; Если этот символ - яблоко
+	cmp ax, appleSymbol          ; Р•СЃР»Рё СЌС‚РѕС‚ СЃРёРјРІРѕР» - СЏР±Р»РѕРєРѕ
 	je AppleIsNext               ;
                                  ;
-	cmp ax, snakeBodySymbol      ; Если этот символ - тело змейки
+	cmp ax, snakeBodySymbol      ; Р•СЃР»Рё СЌС‚РѕС‚ СЃРёРјРІРѕР» - С‚РµР»Рѕ Р·РјРµР№РєРё
 	je SnakeIsNext               ;
                                  ;
-	cmp ax, HWallSymbol          ; Если этот символ - горизонтальная стена
+	cmp ax, HWallSymbol          ; Р•СЃР»Рё СЌС‚РѕС‚ СЃРёРјРІРѕР» - РіРѕСЂРёР·РѕРЅС‚Р°Р»СЊРЅР°СЏ СЃС‚РµРЅР°
 	je PortalUpDown              ;
                                  ; 
-	cmp ax, VWallSymbol          ; Если этот символ - верникальная стена
+	cmp ax, VWallSymbol          ; Р•СЃР»Рё СЌС‚РѕС‚ СЃРёРјРІРѕР» - РІРµСЂРЅРёРєР°Р»СЊРЅР°СЏ СЃС‚РµРЅР°
 	je PortalLeftRight           ; 
 	                             ;
-	cmp ax, BWallSymbol          ; Если этот символ - горизонтальная стена
+	cmp ax, BWallSymbol          ; Р•СЃР»Рё СЌС‚РѕС‚ СЃРёРјРІРѕР» - РіРѕСЂРёР·РѕРЅС‚Р°Р»СЊРЅР°СЏ СЃС‚РµРЅР°
 	je SnakeIsNext               ;    
                                  ;
 	cmp ax, VWallSpecialSymbol   ; 
@@ -516,51 +513,49 @@ checkSymbolAgain:                ;
                                  ;
 AppleIsNext:                     ;  
     call destroyWall
-	call incSnake                ; Увеличиваем длину змейки
-	call GenerateRandomApple     ; Генерируем новое яблоко 
-	;call GenerateRandomWall
-	call incScore                ; Увеличиваем счет
-	jmp GoNextIteration          ; Переходим к следующей итерации
+	call incSnake                ; РЈРІРµР»РёС‡РёРІР°РµРј РґР»РёРЅСѓ Р·РјРµР№РєРё
+	call GenerateRandomApple     ; Р“РµРЅРµСЂРёСЂСѓРµРј РЅРѕРІРѕРµ СЏР±Р»РѕРєРѕ 
+	call incScore                ; РЈРІРµР»РёС‡РёРІР°РµРј СЃС‡РµС‚
+	jmp GoNextIteration          ; РџРµСЂРµС…РѕРґРёРј Рє СЃР»РµРґСѓСЋС‰РµР№ РёС‚РµСЂР°С†РёРё
 SnakeIsNext:                     ;
-	call incSnake                ;
-	jmp endLoop                  ; Заканчиваем игру
+	jmp endLoop                  ; Р—Р°РєР°РЅС‡РёРІР°РµРј РёРіСЂСѓ
 PortalUpDown:                    ;
-	mov bx, snakeBody            ; Загружаем в bx голову змейки
-	sub bl, yField               ; Отнимаем от y координаты высоту консоли 
-	cmp bl, 0		             ; Определяем верхняя это или нижняя граница
-	jg writeNewHeadPos           ; Перерисовываем голову змейки
+	mov bx, snakeBody            ; Р—Р°РіСЂСѓР¶Р°РµРј РІ bx РіРѕР»РѕРІСѓ Р·РјРµР№РєРё
+	sub bl, yField               ; РћС‚РЅРёРјР°РµРј РѕС‚ y РєРѕРѕСЂРґРёРЅР°С‚С‹ РІС‹СЃРѕС‚Сѓ РєРѕРЅСЃРѕР»Рё 
+	cmp bl, 0		             ; РћРїСЂРµРґРµР»СЏРµРј РІРµСЂС…РЅСЏСЏ СЌС‚Рѕ РёР»Рё РЅРёР¶РЅСЏСЏ РіСЂР°РЅРёС†Р°
+	jg writeNewHeadPos           ; РџРµСЂРµСЂРёСЃРѕРІС‹РІР°РµРј РіРѕР»РѕРІСѓ Р·РјРµР№РєРё
                                  ;
-	                             ; Если это была верхняя стена
-	add bl, yField*2             ; Корректируем координаты 
+	                             ; Р•СЃР»Рё СЌС‚Рѕ Р±С‹Р»Р° РІРµСЂС…РЅСЏСЏ СЃС‚РµРЅР°
+	add bl, yField*2             ; РљРѕСЂСЂРµРєС‚РёСЂСѓРµРј РєРѕРѕСЂРґРёРЅР°С‚С‹ 
                                  ;
 writeNewHeadPos:                 ;
-	mov snakeBody, bx	         ; Записываем новое значение головы
-	jmp checkSymbolAgain	     ; и отправляем его заново на сравнение
+	mov snakeBody, bx	         ; Р—Р°РїРёСЃС‹РІР°РµРј РЅРѕРІРѕРµ Р·РЅР°С‡РµРЅРёРµ РіРѕР»РѕРІС‹
+	jmp checkSymbolAgain	     ; Рё РѕС‚РїСЂР°РІР»СЏРµРј РµРіРѕ Р·Р°РЅРѕРІРѕ РЅР° СЃСЂР°РІРЅРµРЅРёРµ
                                  ;
 PortalLeftRight:                 ;
 	mov bx, snakeBody            ;
 	sub bh, xField               ;
 	cmp bh, 0		             ; 
-	jg writeNewHeadPos           ;  Аналогично обрабатываем случай с вертикальной стеной
+	jg writeNewHeadPos           ;  РђРЅР°Р»РѕРіРёС‡РЅРѕ РѕР±СЂР°Р±Р°С‚С‹РІР°РµРј СЃР»СѓС‡Р°Р№ СЃ РІРµСЂС‚РёРєР°Р»СЊРЅРѕР№ СЃС‚РµРЅРѕР№
                                  ;
 	add bh, xField*2             ;
 	jmp writeNewHeadPos          ;
                                  ;
 GoNextIteration:                 ;
-	mov bx, snakeBody		     ; Загружаем в bx новое начало змейки
-	call CalcOffsetByPoint       ; Вычисляем ее позицию
-	mov di, bx                   ; Теперь в di смещение позиции bx в консоли
-	mov ax, snakeBodySymbol      ; Записываем в ax символ змейки 
-	stosw                        ; Записываем в консоль
+	mov bx, snakeBody		     ; Р—Р°РіСЂСѓР¶Р°РµРј РІ bx РЅРѕРІРѕРµ РЅР°С‡Р°Р»Рѕ Р·РјРµР№РєРё
+	call CalcOffsetByPoint       ; Р’С‹С‡РёСЃР»СЏРµРј РµРµ РїРѕР·РёС†РёСЋ
+	mov di, bx                   ; РўРµРїРµСЂСЊ РІ di СЃРјРµС‰РµРЅРёРµ РїРѕР·РёС†РёРё bx РІ РєРѕРЅСЃРѕР»Рё
+	mov ax, snakeBodySymbol      ; Р—Р°РїРёСЃС‹РІР°РµРј РІ ax СЃРёРјРІРѕР» Р·РјРµР№РєРё 
+	stosw                        ; Р—Р°РїРёСЃС‹РІР°РµРј РІ РєРѕРЅСЃРѕР»СЊ
                                  ;
-	call Sleep                   ; Задержка
+	call Sleep                   ; Р—Р°РґРµСЂР¶РєР°
                                  ;
 	jmp checkAndMoveLoop         ;
                                  ;
 endLoop:                         ;
 	pop es                       ;
 	pop ds                       ;
-	pop dx                       ; Восстанавливаем значения регистров
+	pop dx                       ; Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµРј Р·РЅР°С‡РµРЅРёСЏ СЂРµРіРёСЃС‚СЂРѕРІ
 	pop cx                       ;
 	pop bx                       ;
 	pop ax                       ;
@@ -569,23 +564,23 @@ ENDP                               ;
                                  ;
 Sleep PROC                       ;
 	push ax                      ;
-	push bx                      ; Сохраняем регистры
+	push bx                      ; РЎРѕС…СЂР°РЅСЏРµРј СЂРµРіРёСЃС‚СЂС‹
 	push cx                      ;
 	push dx                      ;
                                  ;
-	GetTimerValue                ; Получаем текущее значение времени
+	GetTimerValue                ; РџРѕР»СѓС‡Р°РµРј С‚РµРєСѓС‰РµРµ Р·РЅР°С‡РµРЅРёРµ РІСЂРµРјРµРЅРё
                                  ;
-	add dx, waitTime             ; Добавляем к dx значение задержки
-	mov bx, dx                   ; Загружаем его в bx
+	add dx, waitTime             ; Р”РѕР±Р°РІР»СЏРµРј Рє dx Р·РЅР°С‡РµРЅРёРµ Р·Р°РґРµСЂР¶РєРё
+	mov bx, dx                   ; Р—Р°РіСЂСѓР¶Р°РµРј РµРіРѕ РІ bx
                                  ;
 checkTimeLoop:                   ;
-	GetTimerValue                ; Получаем текузее значение времени
+	GetTimerValue                ; РџРѕР»СѓС‡Р°РµРј С‚РµРєСѓР·РµРµ Р·РЅР°С‡РµРЅРёРµ РІСЂРµРјРµРЅРё
 	cmp dx, bx			         ; ax - current value, bx - needed value
-	jl checkTimeLoop             ; Если еще рано - уходим на следующую итерацию 
+	jl checkTimeLoop             ; Р•СЃР»Рё РµС‰Рµ СЂР°РЅРѕ - СѓС…РѕРґРёРј РЅР° СЃР»РµРґСѓСЋС‰СѓСЋ РёС‚РµСЂР°С†РёСЋ 
                                  ;
 	pop dx                       ;
 	pop cx                       ;
-	pop bx                       ; Восстанавливаем значения регистров
+	pop bx                       ; Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµРј Р·РЅР°С‡РµРЅРёСЏ СЂРµРіРёСЃС‚СЂРѕРІ
 	pop ax                       ;
 	ret                          ;
 ENDP                             ;
@@ -593,15 +588,15 @@ ENDP                             ;
 GenerateRandomApple PROC  ;
 	push ax               ;
 	push bx               ;
-	push cx               ; Сохраняем значения регистров
+	push cx               ; РЎРѕС…СЂР°РЅСЏРµРј Р·РЅР°С‡РµРЅРёСЏ СЂРµРіРёСЃС‚СЂРѕРІ
 	push dx               ;
 	push es               ;
 	                      ;
-	mov ah, 2Ch           ; Считываем текущее время
-	int 21h               ; ch - час, cl - минуты, dh - секунды, dl - мсек
+	mov ah, 2Ch           ; РЎС‡РёС‚С‹РІР°РµРј С‚РµРєСѓС‰РµРµ РІСЂРµРјСЏ
+	int 21h               ; ch - С‡Р°СЃ, cl - РјРёРЅСѓС‚С‹, dh - СЃРµРєСѓРЅРґС‹, dl - РјСЃРµРє
 	
 	mov al, dl                     
-    mul dh                   ; Теперь в ax число для рандома
+    mul dh                   ; РўРµРїРµСЂСЊ РІ ax С‡РёСЃР»Рѕ РґР»СЏ СЂР°РЅРґРѕРјР°
 	             
 	xor dx, dx             
 	             
@@ -635,7 +630,7 @@ GenerateRandomApple PROC  ;
 	            
 	writeToTemplate:
 	mov di, offset brickWallTemplate
-	mov cx, brickWakkSize
+	mov cx, brickWallSize
 	
 	toTemplate:
 	  push ax
@@ -648,43 +643,43 @@ GenerateRandomApple PROC  ;
 	loop toTemplate                    
 	                      
 loop_random:              ;
-	mov ah, 2Ch           ; Считываем текущее время
-	int 21h               ; ch - час, cl - минуты, dh - секунды, dl - мсек
+	mov ah, 2Ch           ; РЎС‡РёС‚С‹РІР°РµРј С‚РµРєСѓС‰РµРµ РІСЂРµРјСЏ
+	int 21h               ; ch - С‡Р°СЃ, cl - РјРёРЅСѓС‚С‹, dh - СЃРµРєСѓРЅРґС‹, dl - РјСЃРµРє
                           ;
-	mov al, dl            ; Получаем случайное число
-	mul dh 				  ; Теперь в ax число для рандома
+	mov al, dl            ; РџРѕР»СѓС‡Р°РµРј СЃР»СѓС‡Р°Р№РЅРѕРµ С‡РёСЃР»Рѕ
+	mul dh 				  ; РўРµРїРµСЂСЊ РІ ax С‡РёСЃР»Рѕ РґР»СЏ СЂР°РЅРґРѕРјР°
                           ;
-	xor dx, dx			  ; Обнуляем dx
-	mov cx, xField        ; В cx загружаем ширину поля
-	div cx				  ; Получаем номер строки яблока
-	add dx, 2			  ; Добавляем смещение от начала оси
-	mov bh, dl 		      ; Сохраняем координату x
+	xor dx, dx			  ; РћР±РЅСѓР»СЏРµРј dx
+	mov cx, xField        ; Р’ cx Р·Р°РіСЂСѓР¶Р°РµРј С€РёСЂРёРЅСѓ РїРѕР»СЏ
+	div cx				  ; РџРѕР»СѓС‡Р°РµРј РЅРѕРјРµСЂ СЃС‚СЂРѕРєРё СЏР±Р»РѕРєР°
+	add dx, 2			  ; Р”РѕР±Р°РІР»СЏРµРј СЃРјРµС‰РµРЅРёРµ РѕС‚ РЅР°С‡Р°Р»Р° РѕСЃРё
+	mov bh, dl 		      ; РЎРѕС…СЂР°РЅСЏРµРј РєРѕРѕСЂРґРёРЅР°С‚Сѓ x
                           ;
 	xor dx, dx            ;
 	mov cx, yField        ;
-	div cx                ; Аналогично получаем y координату
+	div cx                ; РђРЅР°Р»РѕРіРёС‡РЅРѕ РїРѕР»СѓС‡Р°РµРј y РєРѕРѕСЂРґРёРЅР°С‚Сѓ
 	add dx, 2			  ;
-	mov bl, dl 			  ; Теперь в bx находится координата яблока
+	mov bl, dl 			  ; РўРµРїРµСЂСЊ РІ bx РЅР°С…РѕРґРёС‚СЃСЏ РєРѕРѕСЂРґРёРЅР°С‚Р° СЏР±Р»РѕРєР°
                           ;               
     push bx                      
-	call CalcOffsetByPoint; Расситываем смещение
-	mov es, videoStart    ; Загружаем в es начало видеобуффера
-	mov ax, es:[bx]       ; В ax загружаем символ, который расположен по координатам, в которых мы хотим расположить яблоко
+	call CalcOffsetByPoint; Р Р°СЃСЃРёС‚С‹РІР°РµРј СЃРјРµС‰РµРЅРёРµ
+	mov es, videoStart    ; Р—Р°РіСЂСѓР¶Р°РµРј РІ es РЅР°С‡Р°Р»Рѕ РІРёРґРµРѕР±СѓС„С„РµСЂР°
+	mov ax, es:[bx]       ; Р’ ax Р·Р°РіСЂСѓР¶Р°РµРј СЃРёРјРІРѕР», РєРѕС‚РѕСЂС‹Р№ СЂР°СЃРїРѕР»РѕР¶РµРЅ РїРѕ РєРѕРѕСЂРґРёРЅР°С‚Р°Рј, РІ РєРѕС‚РѕСЂС‹С… РјС‹ С…РѕС‚РёРј СЂР°СЃРїРѕР»РѕР¶РёС‚СЊ СЏР±Р»РѕРєРѕ
     pop bx       
                           ;
-	cmp ax, space         ; Сравниваем их с пробелом(т.е. пустой клеткой). 
-	jne loop_random		  ; Если в клетке что-то есть - генерируем новые координаты   
+	cmp ax, space         ; РЎСЂР°РІРЅРёРІР°РµРј РёС… СЃ РїСЂРѕР±РµР»РѕРј(С‚.Рµ. РїСѓСЃС‚РѕР№ РєР»РµС‚РєРѕР№). 
+	jne loop_random		  ; Р•СЃР»Рё РІ РєР»РµС‚РєРµ С‡С‚Рѕ-С‚Рѕ РµСЃС‚СЊ - РіРµРЅРµСЂРёСЂСѓРµРј РЅРѕРІС‹Рµ РєРѕРѕСЂРґРёРЅР°С‚С‹   
 	                                      
-    mov cx, brickWakkSize             
+    mov cx, brickWallSize             
     mov si, offset brickWallTemplate            
     loopRandomWall:            
-        push bx                 ; Цикл, в котором мы выводим тело змейки
-	    add bx, [si]            ; Загружаем в si очередной символ тела змейки 
+        push bx                 ; Р¦РёРєР», РІ РєРѕС‚РѕСЂРѕРј РјС‹ РІС‹РІРѕРґРёРј С‚РµР»Рѕ Р·РјРµР№РєРё
+	    add bx, [si]            ; Р—Р°РіСЂСѓР¶Р°РµРј РІ si РѕС‡РµСЂРµРґРЅРѕР№ СЃРёРјРІРѕР» С‚РµР»Р° Р·РјРµР№РєРё 
         
         push bx                      
-	    call CalcOffsetByPoint; Расситываем смещение
-	    mov es, videoStart    ; Загружаем в es начало видеобуффера
-	    mov ax, es:[bx]       ; В ax загружаем символ, который расположен по координатам, в которых мы хотим расположить яблоко
+	    call CalcOffsetByPoint; Р Р°СЃСЃРёС‚С‹РІР°РµРј СЃРјРµС‰РµРЅРёРµ
+	    mov es, videoStart    ; Р—Р°РіСЂСѓР¶Р°РµРј РІ es РЅР°С‡Р°Р»Рѕ РІРёРґРµРѕР±СѓС„С„РµСЂР°
+	    mov ax, es:[bx]       ; Р’ ax Р·Р°РіСЂСѓР¶Р°РµРј СЃРёРјРІРѕР», РєРѕС‚РѕСЂС‹Р№ СЂР°СЃРїРѕР»РѕР¶РµРЅ РїРѕ РєРѕРѕСЂРґРёРЅР°С‚Р°Рј, РІ РєРѕС‚РѕСЂС‹С… РјС‹ С…РѕС‚РёРј СЂР°СЃРїРѕР»РѕР¶РёС‚СЊ СЏР±Р»РѕРєРѕ
         pop bx 
         
         pop bx
@@ -693,35 +688,35 @@ loop_random:              ;
 
 	    jne loop_random
 	              
-	    add si, PointSize       ; Добавляем к si PointSize, т.е. 2, т.к. каждая точка занимает 2 байта (цвет + символ)
+	    add si, PointSize       ; Р”РѕР±Р°РІР»СЏРµРј Рє si PointSize, С‚.Рµ. 2, С‚.Рє. РєР°Р¶РґР°СЏ С‚РѕС‡РєР° Р·Р°РЅРёРјР°РµС‚ 2 Р±Р°Р№С‚Р° (С†РІРµС‚ + СЃРёРјРІРѕР»)
 	loop loopRandomWall
 	
-    mov cx, brickWakkSize            
+    mov cx, brickWallSize            
     mov si, offset brickWallTemplate
     mov di, offset brickWallTrue
 	loopCreateWall:            
-        push ax                 ; Цикл, в котором мы выводим тело змейки
-	    mov ax, [si]            ; Загружаем в si очередной символ тела змейки 
+        push ax                 ; Р¦РёРєР», РІ РєРѕС‚РѕСЂРѕРј РјС‹ РІС‹РІРѕРґРёРј С‚РµР»Рѕ Р·РјРµР№РєРё
+	    mov ax, [si]            ; Р—Р°РіСЂСѓР¶Р°РµРј РІ si РѕС‡РµСЂРµРґРЅРѕР№ СЃРёРјРІРѕР» С‚РµР»Р° Р·РјРµР№РєРё 
 	    add ax, bx 
 	    mov [di], ax                      
 	    
 	    add si, PointSize
 	    add di, PointSize
-	    pop ax                  ; Выводим
+	    pop ax                  ; Р’С‹РІРѕРґРёРј
 	loop loopCreateWall    
 	
 	call drawBrickWall                                    
 	                
 	push bx                      
-	call CalcOffsetByPoint; Расситываем смещение
-	mov es, videoStart    ; Загружаем в es начало видеобуффера
+	call CalcOffsetByPoint; Р Р°СЃСЃРёС‚С‹РІР°РµРј СЃРјРµС‰РµРЅРёРµ
+	mov es, videoStart    ; Р—Р°РіСЂСѓР¶Р°РµРј РІ es РЅР°С‡Р°Р»Рѕ РІРёРґРµРѕР±СѓС„С„РµСЂР°
 	mov ax, appleSymbol; 
-	mov es:[bx], ax       ; Выводим символ яблока
+	mov es:[bx], ax       ; Р’С‹РІРѕРґРёРј СЃРёРјРІРѕР» СЏР±Р»РѕРєР°
     pop bx                 
                           ;
 	pop es                ;
 	pop dx                ;
-	pop cx                ; Восстанавливаем регистры
+	pop cx                ; Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµРј СЂРµРіРёСЃС‚СЂС‹
 	pop bx                ;
 	pop ax                ;
 	ret                   ;
@@ -730,36 +725,36 @@ ENDP                     ;
 ;save tail of snake if no overloading
 incSnake PROC             ;
 	push ax               ;
-	push bx               ; Сохраняем значения регистров
+	push bx               ; РЎРѕС…СЂР°РЅСЏРµРј Р·РЅР°С‡РµРЅРёСЏ СЂРµРіРёСЃС‚СЂРѕРІ
 	push di               ;
 	push es               ;
                           ;
-	mov al, snakeSize     ; Загружаем в ax текущий размер змейки
-	cmp al, snakeMaxSize  ; Сравниваем его с макисимальным размером змейки
-	je return             ; Если достигли максимума - выходим
+	mov al, snakeSize     ; Р—Р°РіСЂСѓР¶Р°РµРј РІ ax С‚РµРєСѓС‰РёР№ СЂР°Р·РјРµСЂ Р·РјРµР№РєРё
+	cmp al, snakeMaxSize  ; РЎСЂР°РІРЅРёРІР°РµРј РµРіРѕ СЃ РјР°РєРёСЃРёРјР°Р»СЊРЅС‹Рј СЂР°Р·РјРµСЂРѕРј Р·РјРµР№РєРё
+	je return             ; Р•СЃР»Рё РґРѕСЃС‚РёРіР»Рё РјР°РєСЃРёРјСѓРјР° - РІС‹С…РѕРґРёРј
                           ;
-	                      ; Увеличиваем длину змейки в массиве
-	inc al                ; Увеличиваем al на 1
-	mov snakeSize, al     ; Обновляем размер змейки
-	dec al 				  ; Уменьшаем al на 1. Для дальнейшей работы удобнее старая длина змейки
+	                      ; РЈРІРµР»РёС‡РёРІР°РµРј РґР»РёРЅСѓ Р·РјРµР№РєРё РІ РјР°СЃСЃРёРІРµ
+	inc al                ; РЈРІРµР»РёС‡РёРІР°РµРј al РЅР° 1
+	mov snakeSize, al     ; РћР±РЅРѕРІР»СЏРµРј СЂР°Р·РјРµСЂ Р·РјРµР№РєРё
+	dec al 				  ; РЈРјРµРЅСЊС€Р°РµРј al РЅР° 1. Р”Р»СЏ РґР°Р»СЊРЅРµР№С€РµР№ СЂР°Р±РѕС‚С‹ СѓРґРѕР±РЅРµРµ СЃС‚Р°СЂР°СЏ РґР»РёРЅР° Р·РјРµР№РєРё
                           ;
 	                      ;
-	mov bl, PointSize     ; Восстанавливаем конец
-	mul bl 				  ; Получили в ax нужное для восстановления смещение  
+	mov bl, PointSize     ; Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµРј РєРѕРЅРµС†
+	mul bl 				  ; РџРѕР»СѓС‡РёР»Рё РІ ax РЅСѓР¶РЅРѕРµ РґР»СЏ РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅРёСЏ СЃРјРµС‰РµРЅРёРµ  
                           ;
 	mov di, offset snakeBody
-	add di, ax 			  ; di теперь укаывает на точку для восстановления
+	add di, ax 			  ; di С‚РµРїРµСЂСЊ СѓРєР°С‹РІР°РµС‚ РЅР° С‚РѕС‡РєСѓ РґР»СЏ РІРѕСЃСЃС‚Р°РЅРѕРІР»РµРЅРёСЏ
                           ;
-	mov es, dataStart     ; Загружаем в es данные
-	mov bx, es:[di]       ; Загружаем в bx восстанавливаемую точку
-	call CalcOffsetByPoint; Получаем ее координаты
+	mov es, dataStart     ; Р—Р°РіСЂСѓР¶Р°РµРј РІ es РґР°РЅРЅС‹Рµ
+	mov bx, es:[di]       ; Р—Р°РіСЂСѓР¶Р°РµРј РІ bx РІРѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµРјСѓСЋ С‚РѕС‡РєСѓ
+	call CalcOffsetByPoint; РџРѕР»СѓС‡Р°РµРј РµРµ РєРѕРѕСЂРґРёРЅР°С‚С‹
                           ;
-	mov es, videoStart    ; Загружаем в es смещение видеобуффера
-	mov es:[bx], snakeBodySymbol ; Записываем в точку символ тела змейки
+	mov es, videoStart    ; Р—Р°РіСЂСѓР¶Р°РµРј РІ es СЃРјРµС‰РµРЅРёРµ РІРёРґРµРѕР±СѓС„С„РµСЂР°
+	mov es:[bx], snakeBodySymbol ; Р—Р°РїРёСЃС‹РІР°РµРј РІ С‚РѕС‡РєСѓ СЃРёРјРІРѕР» С‚РµР»Р° Р·РјРµР№РєРё
 	                      ;
 return:                   ;
 	pop es                ;
-	pop di                ; Восстанавливаем значения регистров
+	pop di                ; Р’РѕСЃСЃС‚Р°РЅР°РІР»РёРІР°РµРј Р·РЅР°С‡РµРЅРёСЏ СЂРµРіРёСЃС‚СЂРѕРІ
 	pop bx                ;
 	pop ax                ;
 	ret                   ;
@@ -779,7 +774,7 @@ loop_score:	              ;
 	cmp al, 39h			  ;'9' symbol
 	jne nineNotNow        ;
 	                      ;
-	sub al, 9			  ;?????? '0'
+	sub al, 9			  ;
 	mov es:[di], ax       ;
                           ;
 	sub di, oneMemoBlock  ;return to symbol back
